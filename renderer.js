@@ -5,16 +5,34 @@ document.addEventListener('DOMContentLoaded', () => {
   const currentHotkeySpan = document.getElementById('current-hotkey')
   const micSelect = document.getElementById('mic-select')
   const statusMessage = document.getElementById('status-message')
+  // API Key elements
+  const apiKeyInput = document.getElementById('api-key-input')
+  const setApiKeyBtn = document.getElementById('set-api-key-btn')
+  // Debug UI elements
+  const startBtn = document.getElementById('start-record-btn')
+  const stopBtn = document.getElementById('stop-record-btn')
+  const logOutput = document.getElementById('log-output')
 
   let capturingHotkey = false
   let newHotkey = ''
 
-  // --- Model Selection ---
-  modelSelect.addEventListener('change', (event) => {
-    const selectedModel = event.target.value
-    console.log(`Model selected: ${selectedModel}`)
-    window.electronAPI.setModel(selectedModel) // Send to main process
-    updateStatus(`Model setting saved: ${selectedModel}`)
+  // --- API Key Setting ---
+  setApiKeyBtn.addEventListener('click', () => {
+    const newApiKey = apiKeyInput.value.trim()
+    if (newApiKey) {
+      console.log('Sending new API key to main process...')
+      window.electronAPI.setApiKey(newApiKey).then((result) => {
+        if (result.success) {
+          updateStatus('API Key saved successfully.')
+          // Optionally clear the input or provide visual feedback
+          // apiKeyInput.value = ''; // Clear after saving
+        } else {
+          updateStatus(`Error saving API Key: ${result.error}`)
+        }
+      })
+    } else {
+      updateStatus('API Key cannot be empty.')
+    }
   })
 
   // --- Hotkey Setting ---
@@ -144,7 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadInitialSettings() {
     window.electronAPI.getSettings().then((settings) => {
       console.log('Received settings from main:', settings)
-      modelSelect.value = settings.model || 'base'
+      // Removed modelSelect setting
+      apiKeyInput.value = settings.apiKey || '' // Load API Key
       currentHotkeySpan.textContent = settings.hotkey || 'Not Set'
       // We need to populate mics first, then select the saved one
       populateMicrophones() // Ensure mics are listed
@@ -166,6 +185,27 @@ document.addEventListener('DOMContentLoaded', () => {
     window.electronAPI.getSettings().then((settings) => {
       currentHotkeySpan.textContent = settings.hotkey
     })
+  })
+
+  // --- Debug Controls ---
+  startBtn.addEventListener('click', () => {
+    console.log('Start Recording button clicked')
+    window.electronAPI.startRecording()
+    updateStatus('Manual start recording requested...')
+  })
+
+  stopBtn.addEventListener('click', () => {
+    console.log('Stop Recording button clicked')
+    window.electronAPI.stopRecording()
+    updateStatus('Manual stop recording requested...')
+  })
+
+  // --- Log Handling ---
+  window.electronAPI.on('log-message', (logMessage) => {
+    // Append log message to the textarea
+    logOutput.value += logMessage + '\n'
+    // Scroll to the bottom
+    logOutput.scrollTop = logOutput.scrollHeight
   })
 
   // --- Initial Load ---

@@ -5,6 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "build": "electron-builder",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -18,6 +19,7 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "^28.0.0",
+    "electron-builder": "^26.0.12",
     "electron-rebuild": "^3.2.9"
   },
   "dependencies": {
@@ -26,5 +28,24 @@
     "electron-store": "^10.0.1",
     "node-record-lpcm16": "^1.0.1",
     "openai": "^4.91.0"
+  },
+  "build": {
+    "appId": "com.barreiros.superwhisper",
+    "mac": {
+      "category": "public.app-category.utilities"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "index.html",
+      "style.css",
+      "assets/",
+      "node_modules/",
+      "!.env"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
   }
 }

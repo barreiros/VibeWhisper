@@ -20,27 +20,54 @@ const OpenAI = require('openai') // Import OpenAI library
 
 // --- OpenAI Client Initialization ---
 let openai
-if (process.env.OPENAI_API_KEY) {
-  openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  })
-  console.log('OpenAI client initialized.')
-} else {
-  console.error(
-    'FATAL: OPENAI_API_KEY environment variable not set. Please set it in .env or your system environment.'
-  )
-  // Optionally, exit the app or disable transcription if the key is missing
-  // app.quit(); // Example: Exit if key is crucial
+// let store; // Removed duplicate declaration - store is declared later
+
+function initializeOpenAIClient() {
+  // Prioritize key from store, fallback to .env
+  const apiKeyFromStore = store?.get('apiKey')
+  const apiKey = apiKeyFromStore || process.env.OPENAI_API_KEY
+
+  if (apiKey) {
+    try {
+      openai = new OpenAI({ apiKey })
+      console.log('OpenAI client initialized successfully.')
+      return true
+    } catch (error) {
+      console.error(
+        'Failed to initialize OpenAI client with the provided key:',
+        error
+      )
+      openai = null // Ensure client is null if initialization fails
+      return false
+    }
+  } else {
+    console.error(
+      'OpenAI API Key not found in settings or .env file. Please set it in the application settings.'
+    )
+    openai = null // Ensure client is null if no key is found
+    return false
+  }
 }
 
 // --- Configuration ---
 // Removed modelsDir as it's no longer needed
-const tempAudioDir = path.join(__dirname, 'temp-audio') // Store temp audio locally
+// Use app's temp directory for temporary audio storage
+const tempBaseDir = app.getPath('temp')
+const tempAudioDir = path.join(tempBaseDir, 'barreiros-superwhisper-audio') // App-specific subfolder
 const tempAudioFile = path.join(tempAudioDir, 'temp_audio.wav') // Temporary audio file path
 
 // Ensure temp audio directory exists
-if (!fs.existsSync(tempAudioDir)) {
-  fs.mkdirSync(tempAudioDir, { recursive: true })
+try {
+  if (!fs.existsSync(tempAudioDir)) {
+    fs.mkdirSync(tempAudioDir, { recursive: true })
+    console.log(`Created temporary audio directory: ${tempAudioDir}`)
+  }
+} catch (error) {
+  console.error(
+    `Failed to create temporary audio directory at ${tempAudioDir}:`,
+    error
+  )
+  // Handle error appropriately - maybe disable recording?
 }
 
 // Store will be initialized after app is ready and electron-store is imported
@@ -56,26 +83,34 @@ let recordingTimerId = null // To hold the automatic stop timer ID
 
 // --- Transcription Function (using OpenAI API) ---
 async function transcribeAudio(filePath) {
+  console.log('[Transcribe Debug] transcribeAudio function started.') // ADDED
   // Check if the temp file still exists before transcribing
   if (!fs.existsSync(filePath)) {
     console.warn(
-      `Transcription skipped: Temp audio file not found at ${filePath}`
+      // ADDED prefix
+      `[Transcribe Debug] Transcription skipped: Temp audio file not found at ${filePath}`
     )
     return
   }
 
   // Check if OpenAI client is initialized (API Key exists)
   if (!openai) {
-    console.error('OpenAI API key not configured. Cannot transcribe.')
+    console.error(
+      '[Transcribe Debug] OpenAI API key not configured. Cannot transcribe.'
+    ) // ADDED prefix
     // Clean up temp file
     try {
       fs.unlinkSync(filePath)
-      console.log(`Deleted temporary audio file: ${filePath}`)
+      console.log(
+        `[Transcribe Debug] Deleted temporary audio file: ${filePath}`
+      ) // ADDED prefix
     } catch (e) {}
     return
   }
 
-  console.log(`Attempting transcription via OpenAI API for: ${filePath}`)
+  console.log(
+    `[Transcribe Debug] Attempting transcription via OpenAI API for: ${filePath}`
+  ) // ADDED prefix
 
   try {
     const transcription = await openai.audio.transcriptions.create({
@@ -85,53 +120,77 @@ async function transcribeAudio(filePath) {
       // response_format: "text" // Optional: Get plain text directly
     })
 
-    console.log('OpenAI API response received.')
+    console.log('[Transcribe Debug] OpenAI API response received.') // ADDED prefix
     // The result is usually in transcription.text if using default response_format (json)
     const resultText = transcription?.text?.trim()
+    // Log the received text *before* the check
+    console.log(
+      '[Paste Debug] Received transcription text:',
+      resultText ? `"${resultText}"` : resultText
+    )
 
     if (resultText) {
-      console.log('Transcription Result:', resultText)
+      console.log('[Transcribe Debug] Transcription Result:', resultText) // ADDED prefix & Keep original log for clarity
+      // --- Detailed Paste Simulation ---
       try {
-        // --- Use Clipboard and Paste Shortcut ---
-        console.log('Setting clipboard content...')
+        console.log('[Paste Debug] Attempting to set clipboard content...')
         await clipboard.setContent(resultText)
-        console.log('Simulating paste shortcut...')
+        console.log('[Paste Debug] Clipboard content set (or attempted).')
+        // Optional: Verify clipboard content (might require additional permissions or libraries)
+        // const currentClipboard = await clipboard.getContent();
+        // console.log('[Paste Debug] Current clipboard content:', currentClipboard);
+
+        console.log('[Paste Debug] Simulating paste shortcut...')
         const modifierKey =
           process.platform === 'darwin' ? Key.LeftSuper : Key.LeftControl // Cmd on Mac, Ctrl elsewhere
+        console.log(`[Paste Debug] Pressing modifier key: ${Key[modifierKey]}`)
         await keyboard.pressKey(modifierKey)
+        console.log(`[Paste Debug] Pressing key: ${Key[Key.V]}`)
         await keyboard.pressKey(Key.V)
+        console.log(`[Paste Debug] Releasing key: ${Key[Key.V]}`)
         await keyboard.releaseKey(Key.V)
+        console.log(`[Paste Debug] Releasing modifier key: ${Key[modifierKey]}`)
         await keyboard.releaseKey(modifierKey)
-        console.log('Paste shortcut simulated.')
-        // --- End Clipboard Paste ---
-
-        // Original typing method (commented out)
-        // await keyboard.type(resultText)
-        // console.log('Pasted text.')
+        console.log('[Paste Debug] Paste shortcut simulation complete.')
       } catch (pasteError) {
-        console.error('Error pasting text with nut-js:', pasteError)
+        console.error(
+          '[Paste Debug] Error during paste simulation:',
+          pasteError
+        )
       }
+      // --- End Detailed Paste Simulation ---
     } else {
       console.log(
-        'Transcription result from OpenAI was empty or in unexpected format.'
+        // ADDED prefix
+        '[Transcribe Debug] Transcription result from OpenAI was empty or in unexpected format.'
       )
-      console.log('Raw OpenAI response:', JSON.stringify(transcription)) // Log raw response for debugging
+      console.log(
+        '[Transcribe Debug] Raw OpenAI response:',
+        JSON.stringify(transcription)
+      ) // ADDED prefix & Log raw response for debugging
     }
   } catch (error) {
-    console.error('OpenAI API transcription failed:', error)
+    console.error('[Transcribe Debug] OpenAI API transcription failed:', error) // ADDED prefix
     // Log more details if available
     if (error.response) {
-      console.error('API Error Status:', error.response.status)
-      console.error('API Error Data:', error.response.data)
+      console.error(
+        '[Transcribe Debug] API Error Status:',
+        error.response.status
+      ) // ADDED prefix
+      console.error('[Transcribe Debug] API Error Data:', error.response.data) // ADDED prefix
     }
   } finally {
     // Clean up the temporary audio file
     if (fs.existsSync(filePath)) {
       try {
         fs.unlinkSync(filePath)
-        console.log(`Deleted temporary audio file: ${filePath}`)
+        console.log(
+          `[Transcribe Debug] Deleted temporary audio file: ${filePath}`
+        ) // ADDED prefix
       } catch (unlinkErr) {
-        console.error(`Error deleting temp audio file: ${unlinkErr}`)
+        console.error(
+          `[Transcribe Debug] Error deleting temp audio file: ${unlinkErr}`
+        ) // ADDED prefix
       }
     }
   }
@@ -173,12 +232,13 @@ function stopRecordingAndTranscribe() {
     audioFileStream = null // Nullify the main variable immediately
 
     streamInstance.on('finish', () => {
-      console.log('Audio file stream finished writing.')
-      console.log('Starting transcription via OpenAI API...')
+      console.log('[Stream Debug] Audio file stream finished writing.') // ADDED prefix
+      console.log('[Stream Debug] Starting transcription via OpenAI API...') // ADDED prefix
       transcribeAudio(tempAudioFile) // Transcribe *after* stream is finished
+      console.log('[Stream Debug] Called transcribeAudio function.') // ADDED
     })
     streamInstance.on('error', (err) => {
-      console.error('Error writing audio file stream:', err)
+      console.error('[Stream Debug] Error writing audio file stream:', err) // ADDED prefix
       // Clean up temp file on stream error too
       if (fs.existsSync(tempAudioFile)) {
         try {
@@ -206,9 +266,10 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false, // Best practice for security
       contextIsolation: true, // Best practice for security
+      nodeIntegration: true, // Temporarily enable for easier debugging if needed, but ideally keep false
     },
-    show: false, // Initially hide the window
-    skipTaskbar: true, // Don't show in taskbar, runs in background
+    show: true, // Make window visible
+    // skipTaskbar: true, // Remove this to show in taskbar/dock
   })
 
   // Load the index.html of the app.
@@ -241,6 +302,7 @@ function createTray() {
         'Created nativeImage is empty. Check file format/corruption.'
       )
     }
+    image.setTemplateImage(true) // Explicitly mark as template image for macOS menu bar
     console.log('Attempting to create Tray with original icon file...') // Log attempt
     tray = new Tray(image) // Pass the nativeImage object
     console.log('Tray object created:', tray ? 'Success' : 'Failed') // Add logging
@@ -300,11 +362,14 @@ app.whenReady().then(async () => {
   // Initialize electron-store now that the module is loaded
   store = new Store({
     defaults: {
+      apiKey: '', // Add default for apiKey
       hotkey: 'CommandOrControl+Shift+Space',
-      // model: 'base', // No longer needed for OpenAI
       microphone: 'default',
     },
   })
+
+  // Initialize OpenAI client after store is ready
+  initializeOpenAIClient()
 
   // Initialize variables dependent on store
   currentHotkey = store.get('hotkey')
@@ -312,6 +377,118 @@ app.whenReady().then(async () => {
   // Now proceed with creating UI and registering shortcuts
   createTray()
   createWindow() // Create the main window but keep it hidden initially
+
+  // --- Refactored Recording Toggle Logic ---
+  function toggleRecording() {
+    if (isRecording) {
+      // --- Stop Recording ---
+      console.log('Manual stop requested.')
+      stopRecordingAndTranscribe() // Call the refactored stop function
+    } else {
+      // --- Start Recording ---
+      console.log('Starting recording...')
+      isRecording = true
+      // Update tray icon or give feedback (optional)
+      // tray?.setImage(path.join(__dirname, 'assets/iconRecordingTemplate.png')); // Example
+
+      // Ensure temp audio directory exists and previous temp file is deleted if it exists
+      if (!fs.existsSync(tempAudioDir)) {
+        fs.mkdirSync(tempAudioDir, { recursive: true })
+      }
+      if (fs.existsSync(tempAudioFile)) {
+        try {
+          fs.unlinkSync(tempAudioFile)
+          console.log(`Deleted previous temp audio file: ${tempAudioFile}`)
+        } catch (err) {
+          console.error(`Failed to delete previous temp audio file: ${err}`)
+        }
+      }
+
+      // Create a write stream for the temporary audio file
+      try {
+        audioFileStream = fs.createWriteStream(tempAudioFile, {
+          encoding: 'binary',
+        })
+        console.log(`Recording to: ${tempAudioFile}`) // Log path *after* successful stream creation
+      } catch (err) {
+        console.error(
+          `Failed to create write stream for temp audio file: ${err}`
+        )
+        isRecording = false // Reset recording state
+        return // Stop if we can't write the file
+      }
+
+      // Start recording using node-record-lpcm16
+      const micId = store.get('microphone', 'default') // Get selected mic ID
+      const recordingOptions = {
+        sampleRateHertz: 16000,
+        channels: 1,
+        threshold: 0.5, // Silence threshold
+        verbose: false, // Set true for debugging
+        recordProgram: 'rec', // Rely on PATH modification below
+        silence: '1.0', // Seconds of silence to end recording (we stop manually)
+      }
+      // Add device ID if not 'default'
+      if (micId !== 'default') {
+        recordingOptions.device = micId
+      }
+
+      // --- Modify PATH for packaged app ---
+      // Prepend Homebrew bin directory to PATH for the child process
+      const originalPath = process.env.PATH
+      const homebrewPath = '/opt/homebrew/bin'
+      if (
+        process.platform === 'darwin' &&
+        !originalPath.includes(homebrewPath)
+      ) {
+        process.env.PATH = `${homebrewPath}:${originalPath}`
+        console.log(`Temporarily modified PATH to include ${homebrewPath}`)
+      }
+      // --- End PATH modification ---
+
+      try {
+        recordingProcess = record.record(recordingOptions)
+      } catch (recordError) {
+        console.error('Error starting recording process:', recordError)
+        isRecording = false
+        // Restore original PATH if modified
+        if (process.env.PATH !== originalPath) {
+          process.env.PATH = originalPath
+        }
+        return // Stop if recording fails to start
+      }
+
+      // Restore original PATH after spawning (or on error)
+      if (process.env.PATH !== originalPath) {
+        process.env.PATH = originalPath
+        console.log('Restored original PATH.')
+      }
+
+      recordingProcess.stream().on('error', (err) => {
+        console.error('Recording stream error:', err)
+        isRecording = false // Reset state on error
+        // Clean up
+        if (recordingProcess) recordingProcess.stop()
+        if (audioFileStream) audioFileStream.end()
+        recordingProcess = null
+        audioFileStream = null
+        // Notify user?
+      })
+
+      // Pipe the audio data to the file stream
+      recordingProcess.stream().pipe(audioFileStream)
+
+      // --- Start the 2-minute timer ---
+      console.log('Starting 2-minute recording timer.')
+      recordingTimerId = setTimeout(() => {
+        console.log(
+          'Maximum recording time (2 minutes) reached. Stopping automatically.'
+        )
+        stopRecordingAndTranscribe() // Call the refactored stop function
+      }, 2 * 60 * 1000) // 2 minutes in milliseconds
+    }
+  }
+  // --- End Refactored Recording Toggle Logic ---
 
   // --- Global Shortcut Registration ---
   function registerCurrentHotkey() {
@@ -333,84 +510,7 @@ app.whenReady().then(async () => {
 
     const ret = globalShortcut.register(currentHotkey, () => {
       console.log(`Global shortcut ${currentHotkey} pressed`)
-      if (isRecording) {
-        // --- Stop Recording (Manual Trigger) ---
-        console.log('Manual stop requested.')
-        stopRecordingAndTranscribe() // Call the refactored stop function
-      } else {
-        // --- Start Recording ---
-        console.log('Starting recording...')
-        isRecording = true
-        // Update tray icon or give feedback (optional)
-        // tray?.setImage(path.join(__dirname, 'assets/iconRecordingTemplate.png')); // Example
-
-        // Ensure temp audio directory exists and previous temp file is deleted if it exists
-        if (!fs.existsSync(tempAudioDir)) {
-          fs.mkdirSync(tempAudioDir, { recursive: true })
-        }
-        if (fs.existsSync(tempAudioFile)) {
-          try {
-            fs.unlinkSync(tempAudioFile)
-            console.log(`Deleted previous temp audio file: ${tempAudioFile}`)
-          } catch (err) {
-            console.error(`Failed to delete previous temp audio file: ${err}`)
-          }
-        }
-
-        // Create a write stream for the temporary audio file
-        try {
-          audioFileStream = fs.createWriteStream(tempAudioFile, {
-            encoding: 'binary',
-          })
-          console.log(`Recording to: ${tempAudioFile}`) // Log path *after* successful stream creation
-        } catch (err) {
-          console.error(
-            `Failed to create write stream for temp audio file: ${err}`
-          )
-          isRecording = false // Reset recording state
-          return // Stop if we can't write the file
-        }
-
-        // Start recording using node-record-lpcm16
-        const micId = store.get('microphone', 'default') // Get selected mic ID
-        const recordingOptions = {
-          sampleRateHertz: 16000,
-          channels: 1,
-          threshold: 0.5, // Silence threshold
-          verbose: false, // Set true for debugging
-          recordProgram: 'rec', // Or 'sox', 'arecord', etc. depending on OS/availability
-          silence: '1.0', // Seconds of silence to end recording (we stop manually)
-        }
-        // Add device ID if not 'default'
-        if (micId !== 'default') {
-          recordingOptions.device = micId
-        }
-
-        recordingProcess = record.record(recordingOptions)
-
-        recordingProcess.stream().on('error', (err) => {
-          console.error('Recording stream error:', err)
-          isRecording = false // Reset state on error
-          // Clean up
-          if (recordingProcess) recordingProcess.stop()
-          if (audioFileStream) audioFileStream.end()
-          recordingProcess = null
-          audioFileStream = null
-          // Notify user?
-        })
-
-        // Pipe the audio data to the file stream
-        recordingProcess.stream().pipe(audioFileStream)
-
-        // --- Start the 2-minute timer ---
-        console.log('Starting 2-minute recording timer.')
-        recordingTimerId = setTimeout(() => {
-          console.log(
-            'Maximum recording time (2 minutes) reached. Stopping automatically.'
-          )
-          stopRecordingAndTranscribe() // Call the refactored stop function
-        }, 2 * 60 * 1000) // 2 minutes in milliseconds
-      }
+      toggleRecording() // Call the refactored function
     })
 
     if (!ret) {
@@ -433,9 +533,35 @@ app.whenReady().then(async () => {
   // Handle request from renderer to get current settings
   ipcMain.handle('get-settings', async (event) => {
     return {
+      apiKey: store.get('apiKey'), // Return saved API key
       hotkey: store.get('hotkey'),
-      // model: store.get('model'), // Removed model setting
       microphone: store.get('microphone'),
+    }
+  })
+
+  // Handle request from renderer to set a new API key
+  ipcMain.handle('set-api-key', async (event, newApiKey) => {
+    try {
+      console.log('Received new API key, saving to store...')
+      store.set('apiKey', newApiKey)
+      console.log('API Key saved. Re-initializing OpenAI client...')
+      // Re-initialize the OpenAI client with the new key
+      const initialized = initializeOpenAIClient()
+      if (!initialized) {
+        // Optionally notify renderer if initialization failed
+        // mainWindow?.webContents.send('api-key-invalid');
+        console.error('Failed to initialize OpenAI client with the new key.')
+        // Consider how to handle this - maybe clear the stored key?
+        // store.set('apiKey', ''); // Example: Clear invalid key
+        return {
+          success: false,
+          error: 'Failed to initialize OpenAI client with new key.',
+        }
+      }
+      return { success: true }
+    } catch (error) {
+      console.error('Error saving API key:', error)
+      return { success: false, error: error.message }
     }
   })
 
@@ -463,6 +589,25 @@ app.whenReady().then(async () => {
     console.log(`Setting microphone to: ${micId}`)
     store.set('microphone', micId)
     // TODO: Add logic here if the audio input stream needs to be changed immediately
+  })
+
+  // Handle manual start/stop requests from renderer
+  ipcMain.on('start-recording', () => {
+    console.log('Received start-recording request from renderer.')
+    if (!isRecording) {
+      toggleRecording() // Call the refactored function
+    } else {
+      console.log('Already recording, ignoring start request.')
+    }
+  })
+
+  ipcMain.on('stop-recording', () => {
+    console.log('Received stop-recording request from renderer.')
+    if (isRecording) {
+      toggleRecording() // Call the refactored function
+    } else {
+      console.log('Not recording, ignoring stop request.')
+    }
   })
 
   app.on('activate', function () {
@@ -497,7 +642,40 @@ app.on('will-quit', () => {
   globalShortcut.unregisterAll()
 })
 
-// Ensure the app doesn't show in the dock on macOS
-if (process.platform === 'darwin') {
-  app.dock.hide()
+// Keep the app in the dock for debugging
+// if (process.platform === 'darwin') {
+//   app.dock.hide()
+// }
+
+// Function to send logs to renderer
+function sendLogToRenderer(level, ...args) {
+  if (mainWindow && mainWindow.webContents) {
+    const message = args
+      .map((arg) =>
+        typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg
+      )
+      .join(' ')
+    mainWindow.webContents.send(
+      'log-message',
+      `[${level.toUpperCase()}] ${message}`
+    )
+  }
+}
+
+// Redirect console logs to the renderer window
+const originalConsoleLog = console.log
+const originalConsoleWarn = console.warn
+const originalConsoleError = console.error
+
+console.log = (...args) => {
+  originalConsoleLog.apply(console, args) // Keep logging to main process console
+  sendLogToRenderer('log', ...args)
+}
+console.warn = (...args) => {
+  originalConsoleWarn.apply(console, args)
+  sendLogToRenderer('warn', ...args)
+}
+console.error = (...args) => {
+  originalConsoleError.apply(console, args)
+  sendLogToRenderer('error', ...args)
 }

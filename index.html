@@ -11,15 +11,14 @@
 <body>
     <h1>SuperWhisper Settings</h1>
 
+    <!-- Removed Local Model Section -->
+
     <div class="settings-section">
-        <h2>Whisper Model</h2>
-        <label for="model-select">Select Model:</label>
-        <select id="model-select">
-            <option value="tiny">Tiny (Fastest, Lower Accuracy)</option>
-            <option value="base" selected>Base (Recommended)</option>
-            <!-- Add other models if needed -->
-        </select>
-        <p>Models are downloaded locally for offline use.</p>
+        <h2>OpenAI API Key</h2>
+        <label for="api-key-input">API Key:</label>
+        <input type="password" id="api-key-input" placeholder="Enter your OpenAI API Key">
+        <button id="set-api-key-btn">Save Key</button>
+        <p class="small-text">Your key is stored locally and only sent to OpenAI for transcription.</p>
     </div>
 
     <div class="settings-section">
@@ -45,7 +44,15 @@
         <p id="status-message">Ready.</p>
     </div>
 
+    <div class="debug-section">
+        <h2>Debug Controls</h2>
+        <button id="start-record-btn">Start Recording</button>
+        <button id="stop-record-btn">Stop Recording</button>
+        <h3>Logs:</h3>
+        <textarea id="log-output" rows="15" readonly></textarea>
+    </div>
+
     <!-- We will add our UI logic in renderer.js -->
     <script src="renderer.js"></script>
-</body>
+  </body>
 </html>
