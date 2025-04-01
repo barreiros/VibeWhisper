@@ -11,7 +11,9 @@ A simple Electron application that runs in the background, listens for a global 
 - **Configurable Settings:**
   - Global hotkey customization.
   - Microphone input source selection.
-  - (Model selection is handled by OpenAI API).
+  - OpenAI API Key input.
+  - Estimated API usage cost tracking.
+- **Styling:** Uses Tailwind CSS for the settings interface.
 
 ## Setup & Running
 
@@ -24,27 +26,30 @@ A simple Electron application that runs in the background, listens for a global 
       chmod +x install.sh # Make the script executable (only needed once)
       ./install.sh
       ```
-    - The script will check prerequisites and install Node.js dependencies (`npm install`).
+    - The script will check prerequisites and install Node.js dependencies (`npm install`), including Tailwind CSS and its build tools.
 3.  **Configure OpenAI API Key:**
     - This application requires an OpenAI API key to function.
     - Obtain your key from [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys).
-    - Set the key as an environment variable named `OPENAI_API_KEY`. You can do this temporarily in your terminal session before running the app:
-      ```bash
-      export OPENAI_API_KEY='your-actual-api-key-here'
-      ```
-    - For a more permanent solution, add the `export` line to your shell's configuration file (e.g., `~/.zshrc`, `~/.bash_profile`, `~/.bashrc`) and restart your terminal or source the file.
-4.  **Run the Application:**
+    - You can set the key in the application's Settings window after launching it for the first time. The key will be stored securely locally.
+    - Alternatively, you can still set the `OPENAI_API_KEY` environment variable, which will be used if no key is found in the settings.
+4.  **Run the Application (Production):**
     ```bash
     npm start
     ```
-    _(Ensure the `OPENAI_API_KEY` environment variable is set in the terminal session where you run this command)._
+    - This command first builds the necessary CSS using Tailwind (`npm run build:css`) and then launches the Electron application.
+5.  **Run the Application (Development):**
+    - For a better development experience with automatic reloading on file changes (JS, HTML, CSS), run:
+      ```bash
+      npm run dev
+      ```
+    - This uses `concurrently` to run the Tailwind CSS watcher and `electron-reload` alongside the Electron app. Changes to `main.js`, `renderer.js`, `*.html`, or `style.css` will trigger automatic rebuilds and application reloads.
 
 ## How to Use
 
-1.  Ensure your `OPENAI_API_KEY` environment variable is set.
-2.  Launch the application (`npm start`).
+1.  Launch the application (`npm start` or `npm run dev`).
+2.  If launching for the first time or the API key isn't set, open the Settings window (via the Tray icon or the Application Menu: File -> Settings / AppName -> Settings) and enter your OpenAI API key.
 3.  A tray icon should appear. Right-click for Settings or Quit.
-4.  (Optional) Open the Settings window to configure the hotkey and microphone if needed.
+4.  (Optional) Configure the hotkey and microphone in the Settings window. Check the estimated API usage cost.
 5.  Press the configured global hotkey to start recording (you might see console logs if running from the terminal).
 6.  Speak clearly.
 7.  Press the global hotkey again to stop recording.
@@ -54,6 +59,7 @@ A simple Electron application that runs in the background, listens for a global 
 
 - Add visual feedback for recording state (e.g., tray icon change).
 - Improve error handling and user notifications (e.g., for API errors, network issues).
-- Refine UI/UX for settings.
+- Refine UI/UX for settings (further Tailwind styling).
 - Packaging for distribution.
 - Consider adding API-related options (e.g., language selection if needed) to settings.
+- Add visual feedback for recording state (e.g., tray icon change, transcription window indicator).

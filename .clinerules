@@ -9,6 +9,8 @@ The application captures audio from the user's microphone, transcribes it into t
 - **Electron** (for desktop application framework)
 - **Node.js** (for backend logic and system-level access)
 - **OpenAI API** (for cloud-based speech-to-text processing)
+- **Tailwind CSS** (for styling the settings UI)
+- **PostCSS/Autoprefixer** (for CSS processing)
 
 ## Functionality
 
@@ -20,19 +22,28 @@ The application captures audio from the user's microphone, transcribes it into t
 
 ## User Interface
 
-- No visible interface while running, except for a system tray icon.
-- System tray allows access to settings and exit option.
-- Setup includes a user-friendly configuration panel for:
-  - Selecting language/model
-  - Setting the hotkey
-  - Configuring microphone input source
+- Minimal visible interface while running (system tray icon, optional transcription window).
+- System tray allows access to Settings and Quit option.
+- Application Menu (File/App Menu) provides access to Settings and standard actions.
+- Settings window (`index.html`) styled with Tailwind CSS for configuring:
+  - OpenAI API Key
+  - Global Hotkey
+  - Microphone Input Source
+  - Viewing estimated API usage cost.
+- Small, frameless, always-on-top Transcription window (`transcription.html`) appears during recording to show live transcription text.
 
-## Installation
+## Installation & Development
 
-- Requires Node.js and Electron.
-- Requires an OpenAI API key set as an environment variable (`OPENAI_API_KEY`).
-- Installation script (`install.sh`) automates dependency installation.
-- **Cline Maintenance:** When dependencies, build steps, or setup procedures change, update `install.sh` accordingly to reflect the current process.
+- Requires Node.js, npm, and a compatible audio recording utility (e.g., SoX).
+- Requires an OpenAI API key (can be set via Settings window or `OPENAI_API_KEY` environment variable).
+- Installation script (`install.sh`) automates dependency installation (Node modules, Tailwind build tools).
+- **CSS Build:** Tailwind CSS requires a build step.
+  - `npm run build:css`: Manually builds `output.css` from `style.css`.
+  - `npm run watch:css`: Watches for changes and rebuilds `output.css` automatically.
+- **Running:**
+  - `npm start`: Builds CSS once and runs the app (suitable for production-like testing).
+  - `npm run dev`: Runs CSS watcher and Electron app concurrently with `electron-reload` for automatic reloading on file changes (recommended for development).
+- **Cline Maintenance:** When dependencies, build steps, or setup procedures change, update `install.sh`, `README.md`, and this `.clinerules` file accordingly.
 - No local model download required.
 
 ## Goals

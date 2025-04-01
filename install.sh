@@ -71,6 +71,7 @@ echo "Prerequisites check finished."
 echo ""
 echo "Step 2: Installing Node.js dependencies..."
 echo "---------------------------------------"
+echo "(This includes Electron, OpenAI client, Tailwind CSS, and other build tools)"
 npm install
 echo "Dependencies installed successfully."
 
