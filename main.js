@@ -51,6 +51,7 @@ let currentHotkey // Will be set after store is initialized
 let isRecording = false // State variable for recording status
 let recordingProcess = null // To hold the recording process instance
 let audioFileStream = null // To hold the file stream instance
+let recordingTimerId = null // To hold the automatic stop timer ID
 // Removed pollIntervalId
 
 // --- Transcription Function (using OpenAI API) ---
@@ -138,6 +139,63 @@ async function transcribeAudio(filePath) {
 
 // --- File Stability Check Function (REMOVED - No longer needed for API) ---
 // function checkFileAndTranscribe() { ... }
+
+// --- Stop Recording and Transcribe Function ---
+function stopRecordingAndTranscribe() {
+  if (!isRecording) {
+    console.log('Stop requested, but not currently recording.')
+    return // Already stopped or not started
+  }
+
+  console.log('Stopping recording...')
+  isRecording = false // Set state immediately
+
+  // Clear the automatic stop timer if it exists
+  if (recordingTimerId) {
+    clearTimeout(recordingTimerId)
+    recordingTimerId = null
+    console.log('Cleared automatic stop timer.')
+  }
+
+  // Stop the underlying recording process first
+  if (recordingProcess) {
+    recordingProcess.stop()
+    recordingProcess = null
+    console.log('Recording process stopped.')
+  } else {
+    console.warn('Recording process was null when trying to stop.')
+  }
+
+  // Use the 'finish' event on the stream
+  if (audioFileStream) {
+    console.log('Setting up stream close handlers and ending stream...')
+    const streamInstance = audioFileStream // Keep a reference locally
+    audioFileStream = null // Nullify the main variable immediately
+
+    streamInstance.on('finish', () => {
+      console.log('Audio file stream finished writing.')
+      console.log('Starting transcription via OpenAI API...')
+      transcribeAudio(tempAudioFile) // Transcribe *after* stream is finished
+    })
+    streamInstance.on('error', (err) => {
+      console.error('Error writing audio file stream:', err)
+      // Clean up temp file on stream error too
+      if (fs.existsSync(tempAudioFile)) {
+        try {
+          fs.unlinkSync(tempAudioFile)
+        } catch (e) {}
+      }
+    })
+
+    // End the stream AFTER listeners are attached
+    streamInstance.end()
+    console.log('Called .end() on stream.')
+  } else {
+    console.warn('Audio file stream was already null when stopping.')
+    // If stream is null, maybe the file is already closed? Risky.
+    // Let's just log and do nothing, transcription won't happen.
+  }
+}
 
 function createWindow() {
   // Create the browser window.
@@ -276,48 +334,9 @@ app.whenReady().then(async () => {
     const ret = globalShortcut.register(currentHotkey, () => {
       console.log(`Global shortcut ${currentHotkey} pressed`)
       if (isRecording) {
-        // --- Stop Recording ---
-        console.log('Stopping recording...')
-        isRecording = false // Set state immediately
-
-        // Stop the underlying recording process first
-        if (recordingProcess) {
-          recordingProcess.stop()
-          recordingProcess = null
-          console.log('Recording process stopped.')
-        } else {
-          console.warn('Recording process was null when trying to stop.')
-        }
-
-        // Use the 'finish' event on the stream, which should be reliable now
-        if (audioFileStream) {
-          console.log('Setting up stream close handlers and ending stream...')
-          const streamInstance = audioFileStream // Keep a reference locally
-          audioFileStream = null // Nullify the main variable immediately
-
-          streamInstance.on('finish', () => {
-            console.log('Audio file stream finished writing.')
-            console.log('Starting transcription via OpenAI API...')
-            transcribeAudio(tempAudioFile) // Transcribe *after* stream is finished
-          })
-          streamInstance.on('error', (err) => {
-            console.error('Error writing audio file stream:', err)
-            // Clean up temp file on stream error too
-            if (fs.existsSync(tempAudioFile)) {
-              try {
-                fs.unlinkSync(tempAudioFile)
-              } catch (e) {}
-            }
-          })
-
-          // End the stream AFTER listeners are attached
-          streamInstance.end()
-          console.log('Called .end() on stream.')
-        } else {
-          console.warn('Audio file stream was already null when stopping.')
-          // If stream is null, maybe the file is already closed? Risky.
-          // Let's just log and do nothing, transcription won't happen.
-        }
+        // --- Stop Recording (Manual Trigger) ---
+        console.log('Manual stop requested.')
+        stopRecordingAndTranscribe() // Call the refactored stop function
       } else {
         // --- Start Recording ---
         console.log('Starting recording...')
@@ -383,7 +402,14 @@ app.whenReady().then(async () => {
         // Pipe the audio data to the file stream
         recordingProcess.stream().pipe(audioFileStream)
 
-        // console.log(`Recording to: ${tempAudioFile}`) // REMOVE duplicate log
+        // --- Start the 2-minute timer ---
+        console.log('Starting 2-minute recording timer.')
+        recordingTimerId = setTimeout(() => {
+          console.log(
+            'Maximum recording time (2 minutes) reached. Stopping automatically.'
+          )
+          stopRecordingAndTranscribe() // Call the refactored stop function
+        }, 2 * 60 * 1000) // 2 minutes in milliseconds
       }
     })
 
