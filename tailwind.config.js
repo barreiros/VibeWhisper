@@ -1,8 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './*.html', // Scan all HTML files in the root
-    './*.js', // Scan all JS files in the root (includes renderer.js, transcriptionRenderer.js)
+    './src/window/**/*.html', // Scan HTML files in src/window
+    './src/main/renderer.js', // Scan the moved renderer script
+    './transcriptionRenderer.js', // Scan the transcription renderer script (still in root)
   ],
   theme: {
     extend: {},

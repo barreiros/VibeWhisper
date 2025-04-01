@@ -47,9 +47,6 @@
     "files": [
       "main.js",
       "src/",
-      "index.html",
-      "transcription.html",
-      "renderer.js",
       "transcriptionRenderer.js",
       "output.css",
       "assets/",

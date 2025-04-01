@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <!-- Revert CSP -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperWhisper Settings</title>
-    <link rel="stylesheet" href="../output.css"> <!-- Revert to relative path -->
+    <link rel="stylesheet" href="../../output.css">
 </head>
 <body class="bg-gray-100 text-gray-800 p-8 font-sans">
     <h1 class="text-3xl font-bold mb-6 text-center">SuperWhisper Settings</h1>
@@ -63,6 +62,6 @@
     </div>
 
     <!-- We will add our UI logic in renderer.js -->
-    <script src="renderer.js"></script>
+    <script src="../main/renderer.js"></script> <!-- Updated path -->
   </body>
 </html>

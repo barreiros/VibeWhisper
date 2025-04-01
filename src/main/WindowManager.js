@@ -30,7 +30,9 @@ class WindowManager {
     })
 
     // Load the index.html of the app.
-    this.settingsWindow.loadFile('index.html')
+    this.settingsWindow.loadFile(
+      path.join(__dirname, '..', 'window', 'index.html')
+    ) // Updated path
 
     // Open the DevTools (optional, for debugging)
     // this.settingsWindow.webContents.openDevTools();
@@ -92,7 +94,9 @@ class WindowManager {
       },
     })
 
-    this.transcriptionWindow.loadFile('transcription.html')
+    this.transcriptionWindow.loadFile(
+      path.join(__dirname, '..', 'window', 'transcription.html')
+    ) // Updated path
 
     this.transcriptionWindow.on('closed', () => {
       console.log('WindowManager: Transcription window closed.')
