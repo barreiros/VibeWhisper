@@ -2,4 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-/* You can add custom CSS rules below Tailwind directives if needed */
+/* Custom styles for the animated mic indicator in transcription.html */
+@layer components {
+  /* Define the bounce animation for the pulse */
+  @keyframes bounce {
+    0% { transform: scale(1); opacity: 0.2; }
+    25% { transform: scale(1.4); opacity: 0.4; }
+    75% { transform: scale(1); opacity: 0.2; }
+    100% { transform: scale(1.3); opacity: 0.3; }
+  }
+
+  /* Apply animation and color to the pulse element when active */
+  #mic-indicator.active .pulse {
+    @apply bg-red-400; /* Or another suitable pulse color */
+    animation: bounce 0.8s ease-in-out infinite 0.5s;
+  }
+
+  /* Change background of the main circle when active */
+  #mic-indicator.active {
+    @apply bg-red-500;
+  }
+
+  /* Change icon color when active */
+  #mic-indicator.active #mic-icon {
+    @apply stroke-white;
+  }
+}

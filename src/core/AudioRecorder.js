@@ -58,8 +58,12 @@ class AudioRecorder {
     console.log('AudioRecorder: Starting recording...')
     this.recordingStartTime = Date.now() // Record start time
 
-    // Show the transcription window
+    // Show the transcription window and send initial state/text
     this.windowManager?.showTranscriptionWindow()
+    this.windowManager?.sendToTranscriptionWindow(
+      'recording-state-change',
+      true
+    ) // Send recording started state
     this.windowManager?.sendToTranscriptionWindow(
       'transcription-update',
       'Listening...'
@@ -275,12 +279,22 @@ class AudioRecorder {
           )
           this.cleanupTempFile() // Clean up if stat fails
         }
+        // Send recording stopped state *before* closing window
+        this.windowManager?.sendToTranscriptionWindow(
+          'recording-state-change',
+          false
+        )
         // Close transcription window after attempting transcription or skipping
         this.windowManager?.closeTranscriptionWindow()
       })
       streamInstance.on('error', (err) => {
         console.error('AudioRecorder: Error writing audio file stream:', err)
         this.cleanupTempFile() // Clean up temp file on stream error
+        // Send recording stopped state *before* closing window on error
+        this.windowManager?.sendToTranscriptionWindow(
+          'recording-state-change',
+          false
+        )
         // Close transcription window on stream error
         this.windowManager?.closeTranscriptionWindow()
       })
@@ -332,6 +346,11 @@ class AudioRecorder {
     this.windowManager?.sendToTranscriptionWindow(
       'transcription-update',
       'Error during recording.'
+    )
+    // Send recording stopped state *before* closing window on error
+    this.windowManager?.sendToTranscriptionWindow(
+      'recording-state-change',
+      false
     )
     // Close window on recording error.
     this.windowManager?.closeTranscriptionWindow()
