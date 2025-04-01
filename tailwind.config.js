@@ -2,8 +2,8 @@
 module.exports = {
   content: [
     './src/window/**/*.html', // Scan HTML files in src/window
-    './src/main/renderer.js', // Scan the moved renderer script
-    './transcriptionRenderer.js', // Scan the transcription renderer script (still in root)
+    './src/core/Renderer.js', // Updated path to core
+    './src/core/TranscriptionRenderer.js', // Updated path to core
   ],
   theme: {
     extend: {},

@@ -29,10 +29,10 @@ class WindowManager {
       show: true, // Show it immediately for now
     })
 
-    // Load the index.html of the app.
+    // Load the settings.html of the app.
     this.settingsWindow.loadFile(
-      path.join(__dirname, '..', 'window', 'index.html')
-    ) // Updated path
+      path.join(__dirname, '..', 'window', 'settings.html')
+    ) // Updated path to settings.html
 
     // Open the DevTools (optional, for debugging)
     // this.settingsWindow.webContents.openDevTools();
