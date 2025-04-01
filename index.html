@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperWhisper Settings</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>SuperWhisper Settings</h1>
+
+    <div class="settings-section">
+        <h2>Whisper Model</h2>
+        <label for="model-select">Select Model:</label>
+        <select id="model-select">
+            <option value="tiny">Tiny (Fastest, Lower Accuracy)</option>
+            <option value="base" selected>Base (Recommended)</option>
+            <!-- Add other models if needed -->
+        </select>
+        <p>Models are downloaded locally for offline use.</p>
+    </div>
+
+    <div class="settings-section">
+        <h2>Global Hotkey</h2>
+        <label for="hotkey-input">Set Hotkey:</label>
+        <input type="text" id="hotkey-input" placeholder="Click and press desired keys" readonly>
+        <button id="set-hotkey-btn">Set Hotkey</button>
+        <p>Current Hotkey: <span id="current-hotkey">CommandOrControl+Shift+Space</span></p>
+        <p class="small-text">Press the desired key combination to activate/deactivate transcription.</p>
+    </div>
+
+    <div class="settings-section">
+        <h2>Microphone Source</h2>
+        <label for="mic-select">Select Input Device:</label>
+        <select id="mic-select">
+            <option value="default">Default System Input</option>
+            <!-- Microphone options will be populated dynamically -->
+        </select>
+    </div>
+
+    <div class="status-section">
+        <h2>Status</h2>
+        <p id="status-message">Ready.</p>
+    </div>
+
+    <!-- We will add our UI logic in renderer.js -->
+    <script src="renderer.js"></script>
+</body>
+</html>

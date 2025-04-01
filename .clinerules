@@ -1,0 +1,43 @@
+# Client Rules Document
+
+## Purpose
+
+The application captures audio from the user's microphone, transcribes it into text using the **OpenAI Speech-to-Text API**, and pastes the resulting text into the currently selected input field.
+
+## Tech Stack
+
+- **Electron** (for desktop application framework)
+- **Node.js** (for backend logic and system-level access)
+- **OpenAI API** (for cloud-based speech-to-text processing)
+
+## Functionality
+
+- Runs in the background with minimal system resource usage.
+- Captures audio input from the user's microphone.
+- Converts audio to text using the **OpenAI API (requires internet connection and API key)**.
+- Pastes the transcribed text into the currently selected input field or application.
+- Activated and deactivated using a customizable global hotkey.
+
+## User Interface
+
+- No visible interface while running, except for a system tray icon.
+- System tray allows access to settings and exit option.
+- Setup includes a user-friendly configuration panel for:
+  - Selecting language/model
+  - Setting the hotkey
+  - Configuring microphone input source
+
+## Installation
+
+- Requires Node.js and Electron.
+- Requires an OpenAI API key set as an environment variable (`OPENAI_API_KEY`).
+- Installation script (`install.sh`) automates dependency installation.
+- **Cline Maintenance:** When dependencies, build steps, or setup procedures change, update `install.sh` accordingly to reflect the current process.
+- No local model download required.
+
+## Goals
+
+- Simple and intuitive user experience.
+- Fast and accurate transcription using local resources.
+- Lightweight and unobtrusive operation.
+- Easy setup with clear installation instructions.

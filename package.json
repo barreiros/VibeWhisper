@@ -1,0 +1,30 @@
+{
+  "name": "barreiros-superwhisper",
+  "version": "0.1.0",
+  "description": "Application to capture audio, transcribe locally with Whisper, and paste text.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "electron",
+    "whisper",
+    "speech-to-text",
+    "transcription",
+    "dictation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-rebuild": "^3.2.9"
+  },
+  "dependencies": {
+    "@nut-tree-fork/nut-js": "^4.2.6",
+    "dotenv": "^16.4.7",
+    "electron-store": "^10.0.1",
+    "node-record-lpcm16": "^1.0.1",
+    "openai": "^4.91.0"
+  }
+}
