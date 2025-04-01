@@ -275,14 +275,14 @@ class AudioRecorder {
           )
           this.cleanupTempFile() // Clean up if stat fails
         }
-        // Keep transcription window open as per recent change request
-        // this.windowManager?.closeTranscriptionWindow();
+        // Close transcription window after attempting transcription or skipping
+        this.windowManager?.closeTranscriptionWindow()
       })
       streamInstance.on('error', (err) => {
         console.error('AudioRecorder: Error writing audio file stream:', err)
         this.cleanupTempFile() // Clean up temp file on stream error
-        // Keep transcription window open? Or close? Let's keep it for now.
-        // this.windowManager?.closeTranscriptionWindow();
+        // Close transcription window on stream error
+        this.windowManager?.closeTranscriptionWindow()
       })
 
       // End the stream AFTER listeners are attached
@@ -294,8 +294,8 @@ class AudioRecorder {
       )
       // If stream is null, maybe the file is already closed or never opened?
       // Transcription won't happen. Ensure window is handled.
-      // Keep transcription window open.
-      // this.windowManager?.closeTranscriptionWindow();
+      // Close transcription window if stream was already null.
+      this.windowManager?.closeTranscriptionWindow()
     }
 
     // Update tray icon back if it was changed
@@ -333,8 +333,8 @@ class AudioRecorder {
       'transcription-update',
       'Error during recording.'
     )
-    // Keep window open or close? Keep open for now.
-    // this.windowManager?.closeTranscriptionWindow();
+    // Close window on recording error.
+    this.windowManager?.closeTranscriptionWindow()
     // TODO: Update tray icon back
   }
 

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- Revert CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcription</title>
+    <link rel="stylesheet" href="../output.css"> <!-- Revert to relative path -->
+    <style>
+        /* Basic styles for the voice animation placeholder */
+        .voice-animation {
+            width: 50px;
+            height: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px auto; /* Center it */
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.3s ease-in-out;
+        }
+        .voice-animation.active {
+            opacity: 1;
+        }
+        .voice-animation span {
+            width: 8px;
+            height: 100%;
+            background-color: #4ade80; /* Tailwind green-400 */
+            border-radius: 2px;
+            display: inline-block;
+            animation: voice-wave 1.2s infinite ease-in-out;
+        }
+        /* Animation delays for the bars */
+        .voice-animation span:nth-child(1) { animation-delay: -1.1s; }
+        .voice-animation span:nth-child(2) { animation-delay: -0.9s; }
+        .voice-animation span:nth-child(3) { animation-delay: -0.7s; }
+        .voice-animation span:nth-child(4) { animation-delay: -0.5s; }
+
+        @keyframes voice-wave {
+            0%, 40%, 100% { transform: scaleY(0.4); }
+            20% { transform: scaleY(1.0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-800 text-white p-4 font-sans text-sm overflow-hidden rounded-lg flex flex-col justify-center items-center h-screen">
+    <!-- Voice Animation Placeholder -->
+    <div id="voice-animation" class="voice-animation">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <!-- Transcription Text -->
+    <div id="transcription-output" class="whitespace-pre-wrap break-words text-center">
+        Listening...
+    </div>
+    <script src="transcriptionRenderer.js"></script>
+</body>
+</html>
