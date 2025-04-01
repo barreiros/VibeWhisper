@@ -7,7 +7,7 @@
     "start": "npm run build:css && electron .",
     "watch:css": "node ./node_modules/tailwindcss/lib/cli.js -i ./style.css -o ./output.css --watch",
     "build:css": "node ./node_modules/tailwindcss/lib/cli.js -i ./style.css -o ./output.css",
-    "dev": "concurrently \"npm:watch:css\" \"cross-env NODE_ENV=development electron .\"",
+    "dev": "concurrently --kill-others-on-fail \"npm:watch:css\" \"cross-env NODE_ENV=development electron .\"",
     "build": "electron-builder",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
