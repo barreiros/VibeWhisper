@@ -15,7 +15,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Allow receiving specific messages from main to renderer
   on: (channel, func) => {
     // Whitelist channels for receiving
-    let validReceiveChannels = ['shortcut-registration-failed', 'log-message'] // Added 'log-message'
+    let validReceiveChannels = [
+      'shortcut-registration-failed',
+      'log-message',
+      'transcription-update', // Added for transcription window
+      'close-transcription-window', // Added for transcription window
+    ]
     if (validReceiveChannels.includes(channel)) {
       // Deliberately strip event as it includes `sender` for security
       ipcRenderer.on(channel, (event, ...args) => func(...args))
@@ -32,6 +37,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Add functions for manual start/stop
   startRecording: () => ipcRenderer.send('start-recording'),
   stopRecording: () => ipcRenderer.send('stop-recording'),
+  // Add function to get usage stats
+  getUsageStats: () => ipcRenderer.invoke('get-usage-stats'),
+
+  // Specific listeners for the transcription window
+  onTranscriptionUpdate: (callback) =>
+    ipcRenderer.on('transcription-update', (event, ...args) =>
+      callback(...args)
+    ),
+  onCloseTranscriptionWindow: (callback) =>
+    ipcRenderer.on('close-transcription-window', (event, ...args) =>
+      callback(...args)
+    ),
 })
 
 console.log('Preload script loaded.')

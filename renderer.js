@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const startBtn = document.getElementById('start-record-btn')
   const stopBtn = document.getElementById('stop-record-btn')
   const logOutput = document.getElementById('log-output')
+  // Usage Stats elements
+  const totalDurationSpan = document.getElementById('total-duration')
+  const estimatedCostSpan = document.getElementById('estimated-cost')
 
   let capturingHotkey = false
   let newHotkey = ''
@@ -176,6 +179,27 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   }
 
+  // --- Load Usage Stats ---
+  function loadUsageStats() {
+    window.electronAPI
+      .getUsageStats()
+      .then((stats) => {
+        console.log('Received usage stats:', stats)
+        if (totalDurationSpan) {
+          totalDurationSpan.textContent = stats.totalSeconds.toFixed(2)
+        }
+        if (estimatedCostSpan) {
+          // Format cost to a reasonable number of decimal places
+          estimatedCostSpan.textContent = stats.estimatedCost.toFixed(4)
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching usage stats:', err)
+        if (totalDurationSpan) totalDurationSpan.textContent = 'Error'
+        if (estimatedCostSpan) estimatedCostSpan.textContent = 'Error'
+      })
+  }
+
   // --- Listen for events from Main ---
   window.electronAPI.on('shortcut-registration-failed', (failedHotkey) => {
     updateStatus(
@@ -210,4 +234,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Initial Load ---
   loadInitialSettings()
+  loadUsageStats() // Load stats on initial load
 })

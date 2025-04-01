@@ -6,50 +6,59 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperWhisper Settings</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="output.css">
 </head>
-<body>
-    <h1>SuperWhisper Settings</h1>
+<body class="bg-gray-100 text-gray-800 p-8 font-sans">
+    <h1 class="text-3xl font-bold mb-6 text-center">SuperWhisper Settings</h1>
 
     <!-- Removed Local Model Section -->
 
-    <div class="settings-section">
-        <h2>OpenAI API Key</h2>
-        <label for="api-key-input">API Key:</label>
-        <input type="password" id="api-key-input" placeholder="Enter your OpenAI API Key">
-        <button id="set-api-key-btn">Save Key</button>
-        <p class="small-text">Your key is stored locally and only sent to OpenAI for transcription.</p>
+    <div class="settings-section bg-white p-6 rounded-lg shadow-md mb-6">
+        <h2 class="text-xl font-semibold mb-4">OpenAI API Key</h2>
+        <label for="api-key-input" class="block mb-2 font-medium">API Key:</label>
+        <input type="password" id="api-key-input" placeholder="Enter your OpenAI API Key" class="w-full p-2 border border-gray-300 rounded mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button id="set-api-key-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Save Key</button>
+        <p class="small-text text-xs text-gray-600 mt-2">Your key is stored locally and only sent to OpenAI for transcription.</p>
     </div>
 
-    <div class="settings-section">
-        <h2>Global Hotkey</h2>
-        <label for="hotkey-input">Set Hotkey:</label>
-        <input type="text" id="hotkey-input" placeholder="Click and press desired keys" readonly>
-        <button id="set-hotkey-btn">Set Hotkey</button>
-        <p>Current Hotkey: <span id="current-hotkey">CommandOrControl+Shift+Space</span></p>
-        <p class="small-text">Press the desired key combination to activate/deactivate transcription.</p>
+    <div class="settings-section bg-white p-6 rounded-lg shadow-md mb-6">
+        <h2 class="text-xl font-semibold mb-4">Global Hotkey</h2>
+        <label for="hotkey-input" class="block mb-2 font-medium">Set Hotkey:</label>
+        <input type="text" id="hotkey-input" placeholder="Click and press desired keys" readonly class="w-full p-2 border border-gray-300 rounded mb-2 bg-gray-100 cursor-not-allowed">
+        <button id="set-hotkey-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Set Hotkey</button>
+        <p class="mt-2">Current Hotkey: <span id="current-hotkey" class="font-mono bg-gray-200 px-2 py-1 rounded">CommandOrControl+Shift+Space</span></p>
+        <p class="small-text text-xs text-gray-600 mt-2">Press the desired key combination to activate/deactivate transcription.</p>
     </div>
 
-    <div class="settings-section">
-        <h2>Microphone Source</h2>
-        <label for="mic-select">Select Input Device:</label>
-        <select id="mic-select">
+    <div class="settings-section bg-white p-6 rounded-lg shadow-md mb-6">
+        <h2 class="text-xl font-semibold mb-4">Microphone Source</h2>
+        <label for="mic-select" class="block mb-2 font-medium">Select Input Device:</label>
+        <select id="mic-select" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="default">Default System Input</option>
             <!-- Microphone options will be populated dynamically -->
         </select>
     </div>
 
-    <div class="status-section">
-        <h2>Status</h2>
-        <p id="status-message">Ready.</p>
+    <div class="usage-section bg-white p-6 rounded-lg shadow-md mb-6">
+        <h2 class="text-xl font-semibold mb-4">Estimated OpenAI Usage</h2>
+        <p>Total Transcription Time: <span id="total-duration" class="font-mono">0.00</span> seconds</p>
+        <p>Estimated Cost (Whisper): $<span id="estimated-cost" class="font-mono">0.0000</span></p>
+        <p class="small-text text-xs text-gray-600 mt-2">Based on $0.006 / minute. This is an estimate.</p>
     </div>
 
-    <div class="debug-section">
-        <h2>Debug Controls</h2>
-        <button id="start-record-btn">Start Recording</button>
-        <button id="stop-record-btn">Stop Recording</button>
-        <h3>Logs:</h3>
-        <textarea id="log-output" rows="15" readonly></textarea>
+    <div class="status-section bg-white p-6 rounded-lg shadow-md mb-6">
+        <h2 class="text-xl font-semibold mb-4">Status</h2>
+        <p id="status-message" class="text-gray-700">Ready.</p>
+    </div>
+
+    <div class="debug-section bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Debug Controls</h2>
+        <div class="flex space-x-4 mb-4">
+            <button id="start-record-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Start Recording</button>
+            <button id="stop-record-btn" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Stop Recording</button>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Logs:</h3>
+        <textarea id="log-output" rows="10" readonly class="w-full p-2 border border-gray-300 rounded bg-gray-50 font-mono text-sm"></textarea>
     </div>
 
     <!-- We will add our UI logic in renderer.js -->

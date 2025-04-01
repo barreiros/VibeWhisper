@@ -18,6 +18,28 @@ const record = require('node-record-lpcm16') // For audio recording
 const { keyboard, Key, clipboard } = require('@nut-tree-fork/nut-js') // Import clipboard and Key
 const OpenAI = require('openai') // Import OpenAI library
 
+// Enable electron-reload for development
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    require('electron-reload')(__dirname, {
+      electron: require(path.join(__dirname, 'node_modules', 'electron')),
+      // Watch main process files, preload, HTML, and the generated CSS
+      hardResetMethod: 'exit',
+      forceHardReset: true, // Ensures main process restarts on change
+      // You might need to adjust the paths depending on your exact structure
+      // Watching __dirname covers main.js, preload.js, renderer.js, html files etc.
+      // We also specifically watch the generated output.css
+      // Note: Watching node_modules is generally avoided.
+    })
+    console.log('electron-reload enabled.')
+  } catch (err) {
+    console.warn(
+      'electron-reload could not be loaded. Ensure it is installed as a devDependency.',
+      err
+    )
+  }
+}
+
 // --- OpenAI Client Initialization ---
 let openai
 // let store; // Removed duplicate declaration - store is declared later
@@ -73,12 +95,14 @@ try {
 // Store will be initialized after app is ready and electron-store is imported
 let store
 let mainWindow
+let transcriptionWindow = null // Added for transcription display
 let tray = null
 let currentHotkey // Will be set after store is initialized
 let isRecording = false // State variable for recording status
 let recordingProcess = null // To hold the recording process instance
 let audioFileStream = null // To hold the file stream instance
 let recordingTimerId = null // To hold the automatic stop timer ID
+let recordingStartTime = null // Added to track recording duration
 // Removed pollIntervalId
 
 // --- Transcription Function (using OpenAI API) ---
@@ -131,6 +155,12 @@ async function transcribeAudio(filePath) {
 
     if (resultText) {
       console.log('[Transcribe Debug] Transcription Result:', resultText) // ADDED prefix & Keep original log for clarity
+
+      // Send update to transcription window if it exists
+      if (transcriptionWindow && !transcriptionWindow.isDestroyed()) {
+        transcriptionWindow.webContents.send('transcription-update', resultText)
+      }
+
       // --- Detailed Paste Simulation ---
       try {
         console.log('[Paste Debug] Attempting to set clipboard content...')
@@ -208,6 +238,27 @@ function stopRecordingAndTranscribe() {
 
   console.log('Stopping recording...')
   isRecording = false // Set state immediately
+
+  // Calculate duration
+  let durationSeconds = 0
+  if (recordingStartTime) {
+    const endTime = Date.now()
+    durationSeconds = (endTime - recordingStartTime) / 1000
+    console.log(`Recorded duration: ${durationSeconds.toFixed(2)} seconds`)
+    recordingStartTime = null // Reset start time
+  } else {
+    console.warn(
+      'Could not determine recording duration: start time not recorded.'
+    )
+  }
+
+  // Store cumulative duration
+  if (durationSeconds > 0) {
+    const currentTotal = store.get('totalDurationSeconds', 0)
+    const newTotal = currentTotal + durationSeconds
+    store.set('totalDurationSeconds', newTotal)
+    console.log(`Updated total duration: ${newTotal.toFixed(2)} seconds`)
+  }
 
   // Clear the automatic stop timer if it exists
   if (recordingTimerId) {
@@ -365,6 +416,7 @@ app.whenReady().then(async () => {
       apiKey: '', // Add default for apiKey
       hotkey: 'CommandOrControl+Shift+Space',
       microphone: 'default',
+      totalDurationSeconds: 0, // Added for cost tracking
     },
   })
 
@@ -378,15 +430,195 @@ app.whenReady().then(async () => {
   createTray()
   createWindow() // Create the main window but keep it hidden initially
 
+  // --- Create Application Menu ---
+  const menuTemplate = [
+    // { role: 'appMenu' } // Use this for standard macOS app menu items
+    ...(process.platform === 'darwin'
+      ? [
+          {
+            label: app.name,
+            submenu: [
+              { role: 'about' },
+              { type: 'separator' },
+              {
+                label: 'Settings',
+                accelerator: 'CmdOrCtrl+,', // Standard shortcut for settings
+                click: () => {
+                  if (mainWindow) {
+                    mainWindow.show()
+                  } else {
+                    createWindow() // Create if it doesn't exist
+                  }
+                },
+              },
+              { type: 'separator' },
+              { role: 'services' },
+              { type: 'separator' },
+              { role: 'hide' },
+              { role: 'hideOthers' },
+              { role: 'unhide' },
+              { type: 'separator' },
+              { role: 'quit' },
+            ],
+          },
+        ]
+      : []),
+    // { role: 'fileMenu' } // Use this for standard File menu items
+    {
+      label: 'File',
+      submenu: [
+        ...(process.platform !== 'darwin'
+          ? [
+              // Add Settings here for non-macOS
+              {
+                label: 'Settings',
+                accelerator: 'CmdOrCtrl+,',
+                click: () => {
+                  if (mainWindow) {
+                    mainWindow.show()
+                  } else {
+                    createWindow()
+                  }
+                },
+              },
+              { type: 'separator' },
+            ]
+          : []),
+        process.platform === 'darwin' ? { role: 'close' } : { role: 'quit' },
+      ],
+    },
+    // { role: 'editMenu' }
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        ...(process.platform === 'darwin'
+          ? [
+              { role: 'pasteAndMatchStyle' },
+              { role: 'delete' },
+              { role: 'selectAll' },
+              { type: 'separator' },
+              {
+                label: 'Speech',
+                submenu: [{ role: 'startSpeaking' }, { role: 'stopSpeaking' }],
+              },
+            ]
+          : [{ role: 'delete' }, { type: 'separator' }, { role: 'selectAll' }]),
+      ],
+    },
+    // { role: 'viewMenu' }
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { role: 'toggleDevTools' },
+        { type: 'separator' },
+        { role: 'resetZoom' },
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' },
+      ],
+    },
+    // { role: 'windowMenu' }
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'zoom' },
+        ...(process.platform === 'darwin'
+          ? [
+              { type: 'separator' },
+              { role: 'front' },
+              { type: 'separator' },
+              { role: 'window' },
+            ]
+          : [{ role: 'close' }]),
+      ],
+    },
+    {
+      role: 'help',
+      submenu: [
+        {
+          label: 'Learn More',
+          click: async () => {
+            const { shell } = require('electron')
+            await shell.openExternal('https://electronjs.org') // Or your project's website
+          },
+        },
+      ],
+    },
+  ]
+
+  const menu = Menu.buildFromTemplate(menuTemplate)
+  Menu.setApplicationMenu(menu)
+  // --- End Application Menu ---
+
   // --- Refactored Recording Toggle Logic ---
   function toggleRecording() {
     if (isRecording) {
       // --- Stop Recording ---
       console.log('Manual stop requested.')
       stopRecordingAndTranscribe() // Call the refactored stop function
+
+      // Close transcription window if it exists
+      if (transcriptionWindow && !transcriptionWindow.isDestroyed()) {
+        console.log('Closing transcription window.')
+        // Send close signal first (optional, allows renderer to clean up)
+        // transcriptionWindow.webContents.send('close-transcription-window');
+        transcriptionWindow.close()
+      }
+      transcriptionWindow = null
     } else {
       // --- Start Recording ---
       console.log('Starting recording...')
+      recordingStartTime = Date.now() // Record start time
+
+      // Create and show the transcription window
+      if (!transcriptionWindow || transcriptionWindow.isDestroyed()) {
+        transcriptionWindow = new BrowserWindow({
+          width: 300, // Small width
+          height: 150, // Small height
+          frame: false, // No window frame (title bar, etc.)
+          alwaysOnTop: true, // Keep it visible
+          skipTaskbar: true, // Don't show in taskbar/dock
+          resizable: false,
+          movable: true,
+          show: false, // Don't show immediately
+          webPreferences: {
+            preload: path.join(__dirname, 'preload.js'), // Reuse the same preload
+            nodeIntegration: false,
+            contextIsolation: true,
+          },
+        })
+        transcriptionWindow.loadFile('transcription.html')
+        transcriptionWindow.on('closed', () => {
+          transcriptionWindow = null // Clear reference on close
+        })
+        // Show after a short delay to allow loading
+        transcriptionWindow.once('ready-to-show', () => {
+          transcriptionWindow.show()
+          // Optionally send initial message
+          transcriptionWindow.webContents.send(
+            'transcription-update',
+            'Listening...'
+          )
+        })
+      } else {
+        // If window exists but was hidden, show it
+        transcriptionWindow.show()
+        transcriptionWindow.webContents.send(
+          'transcription-update',
+          'Listening...'
+        )
+      }
+
       isRecording = true
       // Update tray icon or give feedback (optional)
       // tray?.setImage(path.join(__dirname, 'assets/iconRecordingTemplate.png')); // Example
@@ -578,6 +810,18 @@ app.whenReady().then(async () => {
       // Attempt to re-register the old hotkey if setting the new one failed badly
       registerCurrentHotkey()
       return { success: false, error: error.message }
+    }
+  })
+
+  // Handle request for usage stats
+  ipcMain.handle('get-usage-stats', async (event) => {
+    const totalSeconds = store.get('totalDurationSeconds', 0)
+    const totalMinutes = totalSeconds / 60
+    const costPerMinute = 0.006 // OpenAI Whisper cost per minute in USD
+    const estimatedCost = totalMinutes * costPerMinute
+    return {
+      totalSeconds: totalSeconds,
+      estimatedCost: estimatedCost,
     }
   })
 
