@@ -58,4 +58,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('audio-volume-update', subscription)
     return () => ipcRenderer.removeListener('audio-volume-update', subscription)
   },
+
+  // --- Send (Renderer -> Main) ---
+  requestStopRecording: () => {
+    console.log('TranscriptionPreload: Sending stop-recording-request')
+    ipcRenderer.send('stop-recording-request')
+  },
 })

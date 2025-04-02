@@ -75,7 +75,31 @@ export default class CubeVisualizer {
     // --- Event Listeners ---
     // Use arrow function to maintain 'this' context
     window.addEventListener('resize', this.onWindowResize.bind(this), false)
+
+    // Add click listener to the canvas
+    this.canvas.addEventListener(
+      'click',
+      this.handleCanvasClick.bind(this),
+      false
+    )
+
     console.log('Three.js initialization complete within CubeVisualizer')
+  }
+
+  handleCanvasClick() {
+    console.log('Canvas clicked!')
+    // Check if the electronAPI is exposed by the preload script
+    if (
+      window.electronAPI &&
+      typeof window.electronAPI.requestStopRecording === 'function'
+    ) {
+      console.log('Sending stop-recording-request via electronAPI...')
+      window.electronAPI.requestStopRecording()
+    } else {
+      console.error(
+        'electronAPI.requestStopRecording is not available. Preload script might be missing or incorrect.'
+      )
+    }
   }
 
   animate() {

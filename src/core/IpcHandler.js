@@ -156,6 +156,15 @@ export default class IpcHandler {
       // Or: this.audioRecorder?.stopRecordingAndTranscribe();
     })
 
+    // Handle request from transcription window (cube click) to stop recording
+    ipcMain.on('stop-recording-request', () => {
+      console.log(
+        'IPC: Received stop-recording-request from transcription window.'
+      )
+      // Directly call the stop method on the recorder
+      this.audioRecorder?.stopRecordingAndTranscribe()
+    })
+
     // --- Log Redirection ---
     // Redirect console logs from main process to the settings window
     const originalConsoleLog = console.log

@@ -7,8 +7,15 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 - **Testing:** Focus on testing recent features (concurrent transcriptions, language/prompt settings, window focus) **and the new 3D transcription window visual**.
 - **Refinements:** Address minor UX issues like transcription window closure.
 - **Implement Cube Volume Reactivity:** Make the 3D cube's opacity react to microphone input volume.
+- **Implement Stop Recording on Cube Click:** Allow users to stop the recording session by clicking the 3D cube in the transcription window.
 
 ## Recent Changes
+
+- **Implement Stop Recording on Cube Click (2025-04-02):**
+
+  - Modified `src/core/CubeVisualizer.js`: Added a click event listener to the canvas element. On click, it calls `window.electronAPI.requestStopRecording()`.
+  - Modified `src/preload/transcriptionPreload.js`: Exposed `requestStopRecording` via `contextBridge`, which sends the `stop-recording-request` IPC message to the main process.
+  - Modified `src/core/IpcHandler.js`: Added a listener for the `stop-recording-request` IPC message, which calls `audioRecorder.stopRecordingAndTranscribe()`.
 
 - **Revert Opacity Damping Factor (Match Scale) (2025-04-02):**
 
@@ -168,8 +175,9 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
     - The cube's **opacity changes** based on microphone input volume (louder = more opaque).
     - Check for visual glitches, performance impact (CPU/GPU usage), and appropriate **opacity and scale** range and the **consistent damped smoothness** (`smoothingFactor`=0.1 for both).
     - Verify the cube color remains red.
-6.  **Update Memory Bank:** Update `progress.md`, `techContext.md`, and `systemPatterns.md`. (Updating now)
-7.  **Await User Feedback/Next Task:** After documentation and testing, await further instructions.
+6.  **Test Stop Recording on Cube Click:** Run the application, start recording, and click the cube. Verify that recording stops, transcription occurs, and the result is pasted.
+7.  **Update Memory Bank:** Update `progress.md`, `techContext.md`, and `systemPatterns.md`. (Updating now)
+8.  **Await User Feedback/Next Task:** After documentation and testing, await further instructions.
 
 ## Active Decisions/Considerations
 
@@ -187,3 +195,4 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 - **3D Cube Volume Reactivity:** Implemented and refined. The **red** cube's **opacity AND scale** now change with **consistent damped smoothing (smoothingFactor=0.1 for both)** based on microphone input volume calculated in `AudioRecorder.js` and sent via IPC (`audio-volume-update`) to `CubeVisualizer.js`.
 - **Removed Standard Menu Bar (2025-04-02):** Commented out `Menu.setApplicationMenu(menu)` in `src/core/AppManager.js` to remove the standard File/Edit/View etc. menu bar. Access to Settings and Quit is now solely through the system tray icon managed by `TrayManager.js`. The Dock icon remains visible on macOS.
 - **Prevent Settings Window Auto-Show (2025-04-02):** Modified `src/core/WindowManager.js` to set `show: false` in the `BrowserWindow` options for the settings window, preventing it from opening automatically on application start. It now only opens when requested via the tray menu.
+- **Stop Recording Interaction:** Recording can now be stopped by pressing the hotkey again OR by clicking the 3D cube in the transcription window.
