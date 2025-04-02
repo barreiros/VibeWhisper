@@ -1,22 +1,15 @@
-import { app } from 'electron' // Removed shell import
+import { app } from 'electron'
 import path from 'path'
-import fs from 'fs'
-import { randomUUID } from 'crypto' // Import for generating unique IDs
-import record from 'node-record-lpcm16' // Assuming default export works for ESM
-import PlaySound from 'play-sound' // Import play-sound
+import fs from 'fs' // Keep fs for checking sound file existence for now
+import PlaySound from 'play-sound'
 
 // SettingsStore instance is now passed in constructor
-
-// Use app's temp directory for temporary audio storage
-const tempBaseDir = app.getPath('temp')
-const tempAudioDir = path.join(tempBaseDir, 'barreiros-superwhisper-audio') // App-specific subfolder
-// No longer using a single fixed tempAudioFile constant
+// Removed imports for node-record-lpcm16, crypto, path (for temp files)
 
 // --- Sound Player Setup ---
 // Resolve paths relative to the app's root directory
-// This helps ensure it works both in development and after packaging
 const soundBasePath = app.isPackaged
-  ? path.join(process.resourcesPath, 'app.asar', 'assets', 'sounds') // Adjust if not using asar or structure differs
+  ? path.join(process.resourcesPath, 'assets', 'sounds') // Path when packaged (no app.asar assumed here for simplicity, adjust if needed)
   : path.join(app.getAppPath(), 'assets', 'sounds')
 
 const startSoundPath = path.join(soundBasePath, 'start.wav')
@@ -50,36 +43,16 @@ export default class AudioRecorder {
   constructor(transcriptionService, windowManager, settingsStore) {
     // Accept settingsStore instance
     this.transcriptionService = transcriptionService // To trigger transcription
-    this.windowManager = windowManager // To show/hide transcription window
+    this.windowManager = windowManager // To show/hide transcription window and send IPC commands
     this.settingsStore = settingsStore // Store the instance
     this.isRecording = false
-    this.recordingProcess = null
-    this.audioFileStream = null
+    // Removed recordingProcess, audioFileStream, currentAudioFilePath
     this.recordingTimerId = null
     this.recordingStartTime = null
-    this.currentAudioFilePath = null // Add property to store the current file path
-    this.lastVolumeSendTime = 0 // Track last volume send time
-    this.volumeSendInterval = 100 // Send volume updates every 100ms (adjust as needed)
+    // Removed volume tracking properties
+    // Removed ensureTempDir call
 
-    this.ensureTempDir()
-    console.log('AudioRecorder initialized.')
-  }
-
-  ensureTempDir() {
-    try {
-      if (!fs.existsSync(tempAudioDir)) {
-        fs.mkdirSync(tempAudioDir, { recursive: true })
-        console.log(
-          `AudioRecorder: Created temporary audio directory: ${tempAudioDir}`
-        )
-      }
-    } catch (error) {
-      console.error(
-        `AudioRecorder: Failed to create temporary audio directory at ${tempAudioDir}:`,
-        error
-      )
-      // Consider disabling recording if the directory cannot be created
-    }
+    console.log('AudioRecorder initialized (Web Audio API mode).')
   }
 
   toggleRecording() {
@@ -111,146 +84,18 @@ export default class AudioRecorder {
     this.windowManager?.sendToTranscriptionWindow(
       'transcription-update',
       'Listening...'
-    )
+    ) // Keep UI update
 
     this.isRecording = true
-    // TODO: Update tray icon (requires TrayManager reference or event emitter)
-    // this.trayManager?.updateIcon('iconRecordingTemplate.png');
+    // TODO: Update tray icon
 
-    // Ensure temp directory exists
-    this.ensureTempDir()
+    // Get selected microphone ID from settings
+    const micId = this.settingsStore.get('microphone', 'default')
 
-    // Generate unique filename for this recording session
-    const uniqueFilename = `recording-${randomUUID()}.wav`
-    this.currentAudioFilePath = path.join(tempAudioDir, uniqueFilename)
-    console.log(
-      `AudioRecorder: Generated unique path: ${this.currentAudioFilePath}`
-    )
-
-    // Create a write stream for the unique temporary audio file
-    try {
-      this.audioFileStream = fs.createWriteStream(this.currentAudioFilePath, {
-        encoding: 'binary',
-      })
-      console.log(`AudioRecorder: Recording to: ${this.currentAudioFilePath}`)
-    } catch (err) {
-      console.error(
-        `AudioRecorder: Failed to create write stream for temp audio file: ${err}`
-      )
-      this.isRecording = false // Reset recording state
-      this.windowManager?.closeTranscriptionWindow() // Close window on error
-      // TODO: Update tray icon back
-      return // Stop if we can't write the file
-    }
-
-    // Start recording using node-record-lpcm16
-    // Use the passed instance
-    const micId = this.settingsStore.get('microphone', 'default') // Get selected mic ID
-    const recordingOptions = {
-      sampleRateHertz: 16000,
-      channels: 1,
-      threshold: 0.5, // Silence threshold
-      verbose: false, // Set true for debugging
-      recordProgram: 'rec', // Assumes 'rec' (SoX) is in PATH
-      silence: '1.0', // Seconds of silence (though we stop manually/timer)
-    }
-    if (micId !== 'default') {
-      recordingOptions.device = micId
-    }
-
-    // --- Modify PATH for packaged app (important for finding 'rec') ---
-    const originalPath = process.env.PATH
-    const homebrewPath = '/opt/homebrew/bin' // Common path on Apple Silicon Macs
-    const usrLocalPath = '/usr/local/bin' // Common path on Intel Macs / Linux
-    let pathModified = false
-
-    if (process.platform === 'darwin' && !originalPath.includes(homebrewPath)) {
-      process.env.PATH = `${homebrewPath}:${originalPath}`
-      pathModified = true
-      console.log(
-        `AudioRecorder: Temporarily modified PATH to include ${homebrewPath}`
-      )
-    } else if (!originalPath.includes(usrLocalPath)) {
-      // Also check /usr/local/bin, might be needed on Intel Macs or Linux if SoX installed there
-      process.env.PATH = `${usrLocalPath}:${originalPath}`
-      pathModified = true
-      console.log(
-        `AudioRecorder: Temporarily modified PATH to include ${usrLocalPath}`
-      )
-    }
-    // --- End PATH modification ---
-
-    try {
-      this.recordingProcess = record.record(recordingOptions)
-    } catch (recordError) {
-      console.error(
-        'AudioRecorder: Error starting recording process:',
-        recordError
-      )
-      this.isRecording = false
-      if (this.audioFileStream) this.audioFileStream.end() // Close stream if open
-      this.audioFileStream = null
-      this.windowManager?.closeTranscriptionWindow()
-      // Restore original PATH if modified
-      if (pathModified) {
-        process.env.PATH = originalPath
-        console.log('AudioRecorder: Restored original PATH after error.')
-      }
-      // TODO: Update tray icon back
-      return // Stop if recording fails to start
-    }
-
-    // Restore original PATH immediately after spawning the process
-    if (pathModified) {
-      process.env.PATH = originalPath
-      console.log('AudioRecorder: Restored original PATH after spawning.')
-    }
-
-    this.recordingProcess.stream().on('error', (err) => {
-      console.error('AudioRecorder: Recording stream error:', err)
-      this.handleRecordingError() // Centralize error handling
-    })
-
-    // Pipe the audio data to the file stream AND process for volume
-    const audioStream = this.recordingProcess.stream()
-    audioStream.pipe(this.audioFileStream)
-
-    // --- Volume Calculation ---
-    audioStream.on('data', (chunk) => {
-      // Throttle sending updates
-      const now = Date.now()
-      if (now - this.lastVolumeSendTime < this.volumeSendInterval) {
-        return
-      }
-      this.lastVolumeSendTime = now
-
-      // Calculate RMS volume
-      let sumOfSquares = 0
-      // Assuming 16-bit PCM little-endian audio
-      for (let i = 0; i < chunk.length; i += 2) {
-        // Read 16-bit sample
-        const sample = chunk.readInt16LE(i)
-        // Normalize sample to -1.0 to 1.0 (approx)
-        const normalizedSample = sample / 32768.0
-        sumOfSquares += normalizedSample * normalizedSample
-      }
-      const rms = Math.sqrt(sumOfSquares / (chunk.length / 2))
-
-      // Normalize RMS to a 0-1 range (needs tuning based on typical levels)
-      // This is a simple linear mapping, might need adjustment (e.g., logarithmic)
-      const maxExpectedRms = 0.3 // Adjust this based on testing!
-      let normalizedVolume = Math.min(rms / maxExpectedRms, 1.0)
-
-      // Add a small boost to make lower volumes more visible
-      normalizedVolume = Math.sqrt(normalizedVolume) // Apply sqrt curve
-
-      // Send normalized volume to the transcription window
-      this.windowManager?.sendToTranscriptionWindow(
-        'audio-volume-update',
-        normalizedVolume
-      )
-    })
-    // --- End Volume Calculation ---
+    // Send command to background window via WindowManager to start capture
+    console.log(`AudioRecorder: Sending start command for device: ${micId}`)
+    this.windowManager?.sendToBackgroundWindow('command-start-capture', micId)
+    // Note: We don't get immediate confirmation here. Errors handled via 'audio-error' IPC.
 
     // Start the maximum duration timer (e.g., 2 minutes)
     const maxDurationMs = 2 * 60 * 1000
@@ -316,92 +161,20 @@ export default class AudioRecorder {
       console.log('AudioRecorder: Cleared automatic stop timer.')
     }
 
-    // Stop the underlying recording process first
-    if (this.recordingProcess) {
-      try {
-        this.recordingProcess.stop()
-        console.log('AudioRecorder: Recording process stopped.')
-      } catch (stopError) {
-        console.error(
-          'AudioRecorder: Error stopping recording process:',
-          stopError
-        )
-      }
-      this.recordingProcess = null
-    } else {
-      console.warn(
-        'AudioRecorder: Recording process was null when trying to stop.'
-      )
-    }
+    // Send command to background window via WindowManager to stop capture
+    console.log('AudioRecorder: Sending stop command.')
+    this.windowManager?.sendToBackgroundWindow('command-stop-capture')
 
-    // Handle the file stream closure and trigger transcription
-    if (this.audioFileStream) {
-      console.log(
-        'AudioRecorder: Setting up stream close handlers and ending stream...'
-      )
-      const streamInstance = this.audioFileStream
-      const filePathToTranscribe = this.currentAudioFilePath // Capture the path for this specific recording
-      this.audioFileStream = null // Nullify the main variable immediately
-      this.currentAudioFilePath = null // Clear current path after capturing it
+    // Transcription is now triggered by 'audio-data-complete' IPC message in IpcHandler
+    // UI updates (closing window, changing state) are handled there or in TranscriptionService
 
-      streamInstance.on('finish', () => {
-        console.log('AudioRecorder: Audio file stream finished writing.')
-        // Check if the file actually exists and has size before transcribing
-        try {
-          const stats = fs.statSync(filePathToTranscribe)
-          if (stats.size > 0) {
-            console.log(
-              `AudioRecorder: Temp file ${filePathToTranscribe} exists (${stats.size} bytes). Triggering transcription...`
-            )
-            // Pass the specific file path for this recording
-            this.transcriptionService?.transcribeAudioFile(filePathToTranscribe)
-          } else {
-            console.warn(
-              `AudioRecorder: Temp file ${filePathToTranscribe} is empty. Skipping transcription.`
-            )
-            // Attempt to clean up the empty file here directly, as TranscriptionService won't be called
-            this.cleanupSpecificFile(filePathToTranscribe)
-          }
-        } catch (statError) {
-          console.warn(
-            `AudioRecorder: Could not stat temp file ${filePathToTranscribe} after stream finish. Skipping transcription. Error: ${statError.message}`
-          )
-          // Attempt cleanup if stat fails
-          this.cleanupSpecificFile(filePathToTranscribe)
-        }
-        // Send recording stopped state *before* closing window
-        this.windowManager?.sendToTranscriptionWindow(
-          'recording-state-change',
-          false
-        )
-        // Close transcription window after attempting transcription or skipping
-        this.windowManager?.closeTranscriptionWindow()
-      })
-      streamInstance.on('error', (err) => {
-        console.error('AudioRecorder: Error writing audio file stream:', err)
-        // Attempt cleanup on stream error using the captured path
-        this.cleanupSpecificFile(filePathToTranscribe)
-        // Send recording stopped state *before* closing window on error
-        this.windowManager?.sendToTranscriptionWindow(
-          'recording-state-change',
-          false
-        )
-        // Close transcription window on stream error
-        this.windowManager?.closeTranscriptionWindow()
-      })
-
-      // End the stream AFTER listeners are attached
-      streamInstance.end()
-      console.log('AudioRecorder: Called .end() on stream.')
-    } else {
-      console.warn(
-        'AudioRecorder: Audio file stream was already null when stopping.'
-      )
-      // If stream is null, maybe the file is already closed or never opened?
-      // Transcription won't happen. Ensure window is handled.
-      // Close transcription window if stream was already null.
-      this.windowManager?.closeTranscriptionWindow()
-    }
+    // Send recording stopped state to the transcription window immediately for UI feedback
+    this.windowManager?.sendToTranscriptionWindow(
+      'recording-state-change',
+      false
+    )
+    // Note: The window might be closed shortly after by the 'audio-data-complete' handler
+    // or the 'audio-error' handler in IpcHandler.
 
     // Update tray icon back if it was changed
     // TODO: Requires TrayManager reference or event emitter
@@ -446,25 +219,7 @@ export default class AudioRecorder {
     )
     // Close window on recording error.
     this.windowManager?.closeTranscriptionWindow()
-    // TODO: Update tray icon back
-  }
-
-  // New method to clean up a specific file path
-  cleanupSpecificFile(filePath) {
-    if (filePath && fs.existsSync(filePath)) {
-      try {
-        fs.unlinkSync(filePath)
-        console.log(
-          `AudioRecorder: Deleted specific temporary audio file: ${filePath}`
-        )
-      } catch (unlinkErr) {
-        console.error(
-          `AudioRecorder: Error deleting specific temp audio file ${filePath}: ${unlinkErr}`
-        )
-      }
-    } else {
-      // console.log(`AudioRecorder: Specific temp file not found or path invalid: ${filePath}`);
-    }
+    // Removed handleRecordingError and cleanupSpecificFile methods
   }
 
   getIsRecording() {

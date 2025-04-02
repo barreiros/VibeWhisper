@@ -36,16 +36,17 @@ The application captures audio from the user's microphone, transcribes it into t
 
 ## Installation & Development
 
-- Requires Node.js, npm, and a compatible audio recording utility (e.g., SoX).
+- Requires Node.js and npm for development. Packaged versions bundle necessary components.
 - Requires an OpenAI API key (can be set via Settings window or `OPENAI_API_KEY` environment variable).
-- Installation script (`install.sh`) automates dependency installation (Node modules, Tailwind build tools).
-- **CSS Build:** Tailwind CSS requires a build step.
+- Audio recording now uses the built-in Web Audio API, removing the need for external tools like SoX.
+- **CSS Build:** Tailwind CSS requires a build step during development.
   - `npm run build:css`: Manually builds `output.css` from `style.css`.
   - `npm run watch:css`: Watches for changes and rebuilds `output.css` automatically.
-- **Running:**
-  - `npm start`: Builds CSS once and runs the app (suitable for production-like testing).
-  - `npm run dev`: Runs CSS watcher and Electron app concurrently with `electron-reload` for automatic reloading on file changes (recommended for development).
-- **Cline Maintenance:** When dependencies, build steps, or setup procedures change, update `install.sh`, `README.md`, and this `.clinerules` file accordingly.
+- **Running (Development):**
+  - `npm run dev`: Runs CSS watcher and Electron app concurrently with `electron-reload` for automatic reloading on file changes.
+- **Building Installers:**
+  - `npm run build`: Uses `electron-builder` to create distributable installers (e.g., .dmg, .exe).
+- **Cline Maintenance:** When dependencies, build steps, or setup procedures change, update `README.md` and this `.clinerules` file accordingly. (Removed mention of install.sh)
 - No local model download required.
 
 ## Goals

@@ -10,8 +10,8 @@ export default class IpcHandler {
     this.appManager = null
     this.hotkeyManager = null
     this.windowManager = null
-    // Add references for AudioRecorder, TranscriptionService etc. later
-    this.audioRecorder = null // Placeholder
+    this.audioRecorder = null // Will be refactored/removed or repurposed
+    this.transcriptionService = null // Add reference for TranscriptionService
     console.log('IpcHandler initialized.')
   }
 
@@ -19,7 +19,8 @@ export default class IpcHandler {
     this.appManager = managers.appManager
     this.hotkeyManager = managers.hotkeyManager
     this.windowManager = managers.windowManager
-    this.audioRecorder = managers.audioRecorder // Assuming it will be passed
+    this.audioRecorder = managers.audioRecorder // Keep for now, might call methods on it
+    this.transcriptionService = managers.transcriptionService // Get TranscriptionService reference
     console.log('IpcHandler: Managers set.')
   }
 
@@ -162,8 +163,107 @@ export default class IpcHandler {
         'IPC: Received stop-recording-request from transcription window.'
       )
       // Directly call the stop method on the recorder
-      this.audioRecorder?.stopRecordingAndTranscribe()
+      this.audioRecorder?.stopRecordingAndTranscribe() // Keep this for now, might change later
     })
+
+    // --- Web Audio API IPC Handlers ---
+
+    // Handle request from main process (e.g., triggered by hotkey) to start capture
+    ipcMain.handle('start-audio-capture', async (event, deviceId) => {
+      console.log(
+        `IPC: Received start-audio-capture request for device: ${deviceId}`
+      )
+      // Send command to the background window's preload script
+      this.windowManager?.sendToBackgroundWindow(
+        'command-start-capture',
+        deviceId
+      )
+      // We might need a way to confirm success/failure back from preload if necessary
+      return { success: true } // Assume success for now
+    })
+
+    // Handle request from main process to stop capture
+    ipcMain.handle('stop-audio-capture', async (event) => {
+      console.log('IPC: Received stop-audio-capture request.')
+      // Send command to the background window's preload script
+      this.windowManager?.sendToBackgroundWindow('command-stop-capture')
+      return { success: true } // Assume success for now
+    })
+
+    // Handle the complete audio data sent FROM the background preload script
+    ipcMain.handle(
+      'audio-data-complete',
+      async (event, arrayBuffer, mimeType) => {
+        console.log(
+          // DEBUG: Log reception in main process
+          `IPC: Handling audio-data-complete. MimeType: ${mimeType}, Buffer size: ${
+            arrayBuffer?.byteLength ?? 0
+          }`
+        )
+        if (arrayBuffer && this.transcriptionService) {
+          try {
+            // Convert ArrayBuffer back to Buffer for OpenAI client (or handle directly if possible)
+            const audioBuffer = Buffer.from(arrayBuffer)
+            console.log(
+              `IPC: Converted ArrayBuffer to Buffer, size: ${audioBuffer.length}`
+            )
+
+            // Pass the buffer and mimeType to the transcription service
+            // We need a new method in TranscriptionService to handle buffer input
+            await this.transcriptionService.transcribeAudioBuffer(
+              audioBuffer,
+              mimeType
+            )
+            return { success: true }
+          } catch (error) {
+            console.error('IPC: Error processing completed audio data:', error)
+            return { success: false, error: error.message }
+          }
+        } else if (!arrayBuffer) {
+          console.warn(
+            'IPC: Received null audio data, likely no chunks recorded.'
+          )
+          // Don't close window here anymore
+          // this.windowManager?.closeTranscriptionWindow()
+          return { success: true, message: 'No audio data recorded.' }
+        } else {
+          console.error(
+            'IPC: TranscriptionService not available to handle audio data.'
+          )
+          return {
+            success: false,
+            error: 'TranscriptionService not available.',
+          }
+        }
+      }
+    )
+
+    // Listen for errors sent FROM the background preload script
+    ipcMain.on('audio-error', (event, errorName, errorMessage) => {
+      console.error(
+        `IPC: Received audio-error from preload: ${errorName} - ${errorMessage}`
+      )
+      // Potentially show an error to the user or update UI state
+      // For example, ensure the transcription window is closed if an error occurs
+      this.windowManager?.sendToTranscriptionWindow(
+        'transcription-update',
+        `Error: ${errorMessage}`
+      )
+      // Don't close window on error here anymore, let TranscriptionService handle UI
+      // setTimeout(() => this.windowManager?.closeTranscriptionWindow(), 1500)
+    })
+
+    // Listen for volume updates sent FROM the background preload script
+    ipcMain.on('audio-volume-update', (event, volume) => {
+      // console.log(`IPC: Received audio-volume-update: ${volume.toFixed(3)}`); // DEBUG
+      // Forward the volume update to the transcription window
+      this.windowManager?.sendToTranscriptionWindow(
+        'audio-volume-update',
+        volume
+      )
+    })
+
+    // --- End Web Audio API IPC Handlers ---
 
     // --- Log Redirection ---
     // Redirect console logs from main process to the settings window

@@ -6,6 +6,7 @@ import path, { dirname } from 'path' // Import dirname as well
 import { fileURLToPath } from 'url' // Needed for __dirname equivalent
 import { createRequire } from 'module' // Needed for CommonJS modules like electron-reload
 import OpenAI from 'openai' // Import OpenAI here for initialization
+// Removed execSync and os imports related to SoX check
 
 // Import Manager Classes (add .js extension)
 import AppManager from './AppManager.js'
@@ -61,6 +62,8 @@ async function initializeApp() {
   // Make async
   console.log('Main Index: Initializing application...')
 
+  // --- SoX Check Removed ---
+
   // Instantiate and initialize SettingsStore first
   const settingsStore = new SettingsStore()
   try {
@@ -87,6 +90,7 @@ async function initializeApp() {
   // Pass the initialized settingsStore instance where needed
   const appManager = new AppManager(settingsStore) // Pass settingsStore
   const windowManager = new WindowManager(appManager) // Pass appManager reference
+  windowManager.createBackgroundWindow() // Create the hidden background window early
   const trayManager = new TrayManager(windowManager) // Pass windowManager reference
   const hotkeyManager = new HotkeyManager(settingsStore) // Pass settingsStore
   const transcriptionService = new TranscriptionService(
@@ -133,9 +137,9 @@ async function initializeApp() {
     appManager: appManager,
     hotkeyManager: hotkeyManager,
     windowManager: windowManager,
-    audioRecorder: audioRecorder, // IPC needs to trigger recorder
-    // transcriptionService: transcriptionService // IPC doesn't directly trigger transcription?
-    settingsStore: settingsStore, // Pass to IPC Handler via setter if needed
+    audioRecorder: audioRecorder, // Keep for now, might change how it's used
+    transcriptionService: transcriptionService, // Pass TranscriptionService to IPC Handler
+    settingsStore: settingsStore,
   })
 
   // Set the callback for the hotkey manager to use the audio recorder's toggle method

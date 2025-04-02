@@ -48,7 +48,7 @@ window.electronAPI.onCloseWindow(() => {
 
 // Listen for audio volume updates
 window.electronAPI.onAudioVolumeUpdate((volume) => {
-  // console.log('Volume update received:', volume); // Optional: Keep for debugging
+  // console.log(`Renderer: Volume update received: ${volume.toFixed(3)}`); // DEBUG
   if (visualizer) {
     visualizer.updateVolume(volume) // Pass volume to the visualizer
   }

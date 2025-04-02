@@ -1,5 +1,6 @@
-import fs from 'fs'
+// Removed fs import
 import OpenAI from 'openai' // Required for type checking if needed, client passed in
+import { toFile } from 'openai' // Import the toFile helper
 import { keyboard, Key, clipboard } from '@nut-tree-fork/nut-js'
 // SettingsStore instance is now passed in constructor
 
@@ -21,18 +22,11 @@ export default class TranscriptionService {
     console.log('TranscriptionService: OpenAI client set.')
   }
 
-  async transcribeAudioFile(filePath) {
+  // New method to handle audio buffer
+  async transcribeAudioBuffer(audioBuffer, mimeType = 'audio/webm') {
     console.log(
-      `TranscriptionService: Received request to transcribe: ${filePath}`
+      `TranscriptionService: Received request to transcribe buffer. Size: ${audioBuffer.length}, Type: ${mimeType}`
     )
-
-    // Check if the temp file still exists before transcribing
-    if (!fs.existsSync(filePath)) {
-      console.warn(
-        `TranscriptionService: Transcription skipped: Temp audio file not found at ${filePath}`
-      )
-      return
-    }
 
     // Check if OpenAI client is initialized (API Key exists and was valid)
     if (!this.openai) {
@@ -43,12 +37,12 @@ export default class TranscriptionService {
         'transcription-update',
         'Error: OpenAI API Key missing or invalid.'
       )
-      this.cleanupTempFile(filePath) // Clean up temp file
+      // No file cleanup needed
       return
     }
 
     console.log(
-      `TranscriptionService: Attempting transcription via OpenAI API for: ${filePath}`
+      `TranscriptionService: Attempting transcription via OpenAI API for buffer.`
     )
     this.windowManager?.sendToTranscriptionWindow(
       'transcription-update',
@@ -75,8 +69,13 @@ export default class TranscriptionService {
       }
 
       // Prepare options for the API call
+      // Determine a filename based on mimeType for the API
+      const fileExtension = mimeType.split('/')[1]?.split(';')[0] || 'webm' // Extract basic extension
+      const fileName = `audio.${fileExtension}`
+      console.log(`TranscriptionService: Using filename for API: ${fileName}`)
+
       const transcriptionOptions = {
-        file: fs.createReadStream(filePath), // Create a read stream from the file
+        file: await toFile(audioBuffer, fileName), // Use toFile helper
         model: 'whisper-1', // Use the standard whisper-1 model
         // response_format: "text" // Optional: Get plain text directly
       }
@@ -157,8 +156,7 @@ export default class TranscriptionService {
         errorMessage
       )
     } finally {
-      // Clean up the temporary audio file regardless of success/failure
-      this.cleanupTempFile(filePath)
+      // No file cleanup needed here
 
       // Decrement active requests counter
       this.activeRequests--
@@ -245,26 +243,15 @@ export default class TranscriptionService {
         'transcription-update',
         'Pasting failed.'
       )
+    } finally {
+      // Close the transcription window after attempting to paste
+      console.log(
+        'TranscriptionService: Closing transcription window after paste attempt.'
+      )
+      this.windowManager?.closeTranscriptionWindow()
     }
   }
 
-  cleanupTempFile(filePath) {
-    if (fs.existsSync(filePath)) {
-      try {
-        fs.unlinkSync(filePath)
-        console.log(
-          `TranscriptionService: Deleted temporary audio file: ${filePath}`
-        )
-      } catch (unlinkErr) {
-        console.error(
-          `TranscriptionService: Error deleting temp audio file: ${unlinkErr}`
-        )
-      }
-    } else {
-      console.log(
-        `TranscriptionService: Temp file already deleted or never existed: ${filePath}`
-      )
-    }
-  }
+  // Removed transcribeAudioFile and cleanupTempFile methods
 }
 // Default export is at the class declaration now

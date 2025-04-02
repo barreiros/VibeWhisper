@@ -143,14 +143,16 @@ export default class CubeVisualizer {
 
   // Removed updateCubePosition method
 
-  // Method to change cube color based on state (Now uses shades of red)
+  // Method to change cube color based on state
   setRecordingState(isRecording) {
     if (this.cube) {
-      // Keep it red, maybe slightly brighter when recording? Or just keep it red.
-      // Let's keep it simple for now and just ensure it stays red.
-      // If a visual distinction is needed later, we can adjust brightness/emissiveness.
-      this.cube.material.color.setHex(0xff0000) // Always red
-      console.log(`Cube recording state: ${isRecording} (Color remains red)`)
+      if (isRecording) {
+        this.cube.material.color.setHex(0xff0000) // Red when recording
+        console.log(`Cube recording state: ${isRecording} (Color: Red)`)
+      } else {
+        this.cube.material.color.setHex(0x0000ff) // Blue when stopped (processing)
+        console.log(`Cube recording state: ${isRecording} (Color: Blue)`)
+      }
     }
   }
 

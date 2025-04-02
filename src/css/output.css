@@ -588,10 +588,6 @@ video {
   position: static;
 }
 
-.relative {
-  position: relative;
-}
-
 .mb-2 {
   margin-bottom: 0.5rem;
 }
@@ -630,10 +626,6 @@ video {
 
 .cursor-not-allowed {
   cursor: not-allowed;
-}
-
-.resize {
-  resize: both;
 }
 
 .space-x-4 > :not([hidden]) ~ :not([hidden]) {

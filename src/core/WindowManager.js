@@ -13,8 +13,44 @@ export default class WindowManager {
     this.appManager = appManager // Reference to AppManager for isQuitting flag
     this.settingsWindow = null
     this.transcriptionWindow = null
+    this.backgroundWindow = null // Add reference for the background window
     console.log('WindowManager initialized.')
   }
+
+  // --- Background Window for Web Audio API ---
+  createBackgroundWindow() {
+    if (this.backgroundWindow && !this.backgroundWindow.isDestroyed()) {
+      console.log('WindowManager: Background window already exists.')
+      return this.backgroundWindow
+    }
+
+    console.log('WindowManager: Creating background window...')
+    this.backgroundWindow = new BrowserWindow({
+      show: false, // Keep it hidden
+      webPreferences: {
+        preload: path.join(__dirname, '..', 'preload', 'backgroundPreload.js'), // Dedicated preload script
+        nodeIntegration: false,
+        contextIsolation: true,
+      },
+    })
+
+    // Load a blank HTML file or potentially nothing if preload handles everything
+    this.backgroundWindow.loadFile(
+      path.join(__dirname, '..', 'window', 'background.html')
+    ) // <-- UNCOMMENTED
+
+    // Optional: Open DevTools for debugging the background process
+    this.backgroundWindow.webContents.openDevTools({ mode: 'detach' }) // <-- UNCOMMENTED
+
+    this.backgroundWindow.on('closed', () => {
+      console.log('WindowManager: Background window closed.')
+      this.backgroundWindow = null
+    })
+
+    console.log('WindowManager: Background window created.')
+    return this.backgroundWindow
+  }
+  // --- End Background Window ---
 
   createSettingsWindow() {
     if (this.settingsWindow && !this.settingsWindow.isDestroyed()) {
@@ -204,6 +240,10 @@ export default class WindowManager {
 
   sendToTranscriptionWindow(channel, ...args) {
     this.sendToWindow(this.transcriptionWindow, channel, ...args)
+  }
+
+  sendToBackgroundWindow(channel, ...args) {
+    this.sendToWindow(this.backgroundWindow, channel, ...args)
   }
 
   // Send log messages to the settings window
