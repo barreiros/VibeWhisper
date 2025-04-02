@@ -5,6 +5,7 @@ const validReceiveChannels = [
   'transcription-update',
   'close-transcription-window',
   'recording-state-change', // Added channel for recording status
+  'audio-volume-update', // Added channel for volume level
 ] // Channels main -> renderer
 
 console.log('Transcription Preload Script Loaded.')
@@ -51,5 +52,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('recording-state-change', subscription)
     return () =>
       ipcRenderer.removeListener('recording-state-change', subscription)
+  },
+  onAudioVolumeUpdate: (callback) => {
+    const subscription = (event, ...args) => callback(...args)
+    ipcRenderer.on('audio-volume-update', subscription)
+    return () => ipcRenderer.removeListener('audio-volume-update', subscription)
   },
 })

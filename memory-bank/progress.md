@@ -32,7 +32,12 @@ ok bye## What's Left to Build (Refinements & Testing)
   - **Transcription Prompt:** Thorough testing of the transcription prompt feature. Verify it's passed to the API and influences results. Test with empty and non-empty prompts.
   - **Input Language:** Thorough testing of the input language feature across different languages and "Auto-Detect". Verify accuracy and edge cases.
   - **Transcription Window Focus:** Verify that the transcription window consistently appears without stealing focus from the active application.
-  - **3D Cube Visual:** Test the transcription window's 3D cube rendering. Check for visual glitches, performance impact (CPU/GPU usage), and correct appearance on a transparent background.
+  - **3D Cube Volume Reactivity:** Thoroughly test the transcription window's 3D cube rendering and volume reactivity:
+  - Verify the cube's opacity changes dynamically with microphone input volume.
+  - Check the sensitivity and range of the opacity change (adjust `maxExpectedRms` in `AudioRecorder.js` if needed).
+  - Ensure the cube color remains red.
+  - Check for visual glitches or performance impact (CPU/GPU usage).
+  - Evaluate the **slower, more progressive** smoothness of the **opacity and scale** transitions (`lerpFactor` is now `0.1`).
 - **Transcription Window Closure:** Consider adding a manual close button or mechanism to the transcription window (`transcription.html`) as it currently stays open.
 - **Error Handling:** Continue improving error handling and user feedback (e.g., clearer messages for API errors, SoX not found, paste failures).
 - **Microphone List:** Ensure dynamic population of the microphone list is robust.
@@ -41,9 +46,9 @@ ok bye## What's Left to Build (Refinements & Testing)
 
 ## Current Status
 
-- **Core Functionality Implemented:** The main workflow (hotkey -> record (unique file) -> transcribe (with language/prompt options, handling concurrency via queue) -> paste) is functional. Settings are persistent. UI elements are connected. ES Module conversion complete. Concurrent transcription handling (queuing + unique files) implemented. **Transcription window is positioned bottom-right on screen, displays a larger centered 3D cube visual (logic moved to `CubeVisualizer` class/file, using dynamic Three.js import), is fully transparent (no shadow), and doesn't steal focus.** **Standard application menu bar removed; access is now via system tray icon. Dock icon remains visible on macOS.** **Settings window starts hidden.**
-- **Refinement Needed:** Focus shifts to testing (concurrency, prompt, language, **window focus/positioning**, **3D visual (larger, centered, refactored, dynamic import, no shadow)**, **tray functionality**, **hidden settings window start**), improving user experience (like transcription window closure), enhancing error handling, and preparing for distribution.
-- **Documentation Updated:** Memory Bank reflects the current state including the new language, prompt, updated concurrency features, **3D visual implementation (larger, centered, refactored, dynamic import, no shadow)**, **transcription window positioning (bottom-right screen), focus change, menu bar removal, Dock icon visibility, and hidden settings window start**.
+- **Core Functionality Implemented:** The main workflow (hotkey -> record (unique file, **calculating volume**) -> transcribe (with language/prompt options, handling concurrency via queue) -> paste) is functional. Settings are persistent. UI elements are connected. ES Module conversion complete. Concurrent transcription handling (queuing + unique files) implemented. **Transcription window is positioned bottom-right on screen, displays a larger centered 3D **red** cube visual (logic moved to `CubeVisualizer` class/file, using dynamic Three.js import), is fully transparent (no shadow), doesn't steal focus, AND its **opacity AND scale** now react **more slowly and progressively (smoothed with lerpFactor=0.1)** to microphone volume.** **Standard application menu bar removed; access is now via system tray icon. Dock icon remains visible on macOS.** **Settings window starts hidden.**
+- **Refinement Needed:** Focus shifts to testing (concurrency, prompt, language, **window focus/positioning**, **3D visual opacity/scale reactivity & slower/progressive smoothness**, **tray functionality**, **hidden settings window start**), improving user experience (like transcription window closure), enhancing error handling, and preparing for distribution.
+- **Documentation Updated:** Memory Bank reflects the current state including the new language, prompt, updated concurrency features, **3D visual implementation with **slower/progressive smoothed** volume-based opacity **and scale**, and **red color**\*, **transcription window positioning (bottom-right screen), focus change, menu bar removal, Dock icon visibility, and hidden settings window start\*\*.
 
 ## Known Issues/Bugs (as of 2025-04-02 - 3D Visual)
 

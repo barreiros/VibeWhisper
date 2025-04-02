@@ -1,4 +1,4 @@
-# System Patterns: Barreiros_SuperWhisper
+Hello Hola Hola Ooooooooooooooo Hola Hola Hola# System Patterns: Barreiros_SuperWhisper
 
 _This file documents the system architecture, key technical decisions, design patterns used, and component relationships within the SuperWhisper application._
 
@@ -40,11 +40,8 @@ SuperWhisper follows the standard Electron application architecture, now refacto
 
 ## Design Patterns
 
-- **Inter-Process Communication (IPC):** Communication is strictly managed via `contextBridge` in dedicated preload scripts (`settingsPreload.js`, `transcriptionPreload.js`) and centralized handlers in `IpcHandler.js`. Whitelisted channels ensure secure communication for:
-  - Getting/setting configuration (API key, hotkey, microphone, language).
-  - Receiving status updates (logs, errors, transcription text).
-  - Getting usage statistics.
-- **Event-Driven:** The application reacts to events like hotkey presses (via `HotkeyManager`), IPC messages (via `IpcHandler`), app lifecycle events (via `AppManager`), and internal events between managers.
+- **Inter-Process Communication (IPC):** Communication is strictly managed via `contextBridge` in dedicated preload scripts (`settingsPreload.js`, `transcriptionPreload.js`) and centralized handlers in `IpcHandler.js`. Whitelisted channels ensure secure communication for: - Getting/setting configuration (API key, hotkey, microphone, language, prompt). - Receiving status updates (logs, errors, transcription text, **recording state**, **audio volume**). - Getting usage statistics.
+- **Event-Driven:** The application reacts to events like hotkey presses (via `HotkeyManager`), IPC messages (via `IpcHandler`), app lifecycle events (via `AppManager`), **audio stream data events (in `AudioRecorder`)**, and internal events between managers.
 - **Configuration Management:** Settings are stored persistently using `electron-store`, managed via the `SettingsStore.js` Singleton.
 - **Singleton Pattern:** Used for `SettingsStore.js` to ensure a single source of truth for configuration.
 - **Dependency Injection (Manual):** Managers are instantiated in `src/core/App.js` and necessary dependencies (references to other managers) are passed during initialization or via dedicated setter methods (e.g., `setManagers`, `setToggleCallback`).
@@ -91,8 +88,9 @@ graph TD
 
         AudioRec -- Records --> MicInput([Microphone Input]);
         AudioRec -- Creates --> TempFile[/tmp/temp_audio.wav];
+        AudioRec -- Calculates --> VolumeLevel{Audio Volume};
         AudioRec -- Uses --> Store; # Get mic setting, add duration
-        AudioRec -- Uses --> WinMan; # Show/Hide TransWin
+        AudioRec -- Uses --> WinMan; # Show/Hide TransWin, Send Volume
         AudioRec -- Triggers --> TransSvc; # transcribeAudioFile
 
         TransSvc -- Uses --> OpenAIClient;
@@ -112,10 +110,15 @@ graph TD
         SettingsPreload -- Communicates via --> IPCHan;
     end
 
-    subgraph Renderer - Transcription (transcription.html, TranscriptionRenderer.js, transcriptionPreload.js)
+    subgraph Renderer - Transcription (transcription.html, TranscriptionRenderer.js, CubeVisualizer.js, transcriptionPreload.js)
         TransWin --> TransUI{3D Cube Canvas};
+        TransUI -- Managed by --> CubeVis(CubeVisualizer.js);
+        CubeVis -- Receives --> VolumeLevel; # Via Renderer & Preload
+        CubeVis -- Updates --> CubeOpacity[Cube Opacity];
+        CubeVis -- Updates --> CubeScale[Cube Scale]; # Added Scale Update
         TransUI -- Interacts via --> TransPreload[transcriptionPreload.js];
         TransPreload -- Communicates via --> IPCHan;
+        TransPreload -- Receives --> VolumeLevel; # From AudioRec via WinMan/IPCHan
     end
 
     style SettingsWin fill:#f9f,stroke:#333,stroke-width:2px;

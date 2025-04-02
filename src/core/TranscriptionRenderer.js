@@ -45,3 +45,11 @@ window.electronAPI.onRecordingStateChange((event, isRecording) => {
 window.electronAPI.onCloseWindow(() => {
   window.close() // Close the window when instructed
 })
+
+// Listen for audio volume updates
+window.electronAPI.onAudioVolumeUpdate((volume) => {
+  // console.log('Volume update received:', volume); // Optional: Keep for debugging
+  if (visualizer) {
+    visualizer.updateVolume(volume) // Pass volume to the visualizer
+  }
+})

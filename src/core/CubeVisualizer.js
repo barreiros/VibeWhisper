@@ -11,6 +11,12 @@ export default class CubeVisualizer {
     this.camera = null
     this.renderer = null
     this.cube = null
+    this.currentVolume = 0.0 // Raw volume level (0-1)
+    this.targetOpacity = 0.1 // Target opacity based on volume
+    this.currentOpacity = 0.1 // Current smoothed opacity
+    this.targetScale = 1.0 // Target scale based on volume
+    this.currentScale = 1.0 // Current smoothed scale
+    this.lerpFactor = 0.1 // Smoothing factor (REDUCED for smoother, more progressive change)
 
     this.init()
     this.animate() // Start animation loop
@@ -55,7 +61,12 @@ export default class CubeVisualizer {
       this.cubeSize,
       this.cubeSize
     )
-    const material = new THREE.MeshStandardMaterial({ color: 0xaaaaaa }) // Grey color
+    // Make material transparent, set color to RED, and set initial opacity
+    const material = new THREE.MeshStandardMaterial({
+      color: 0xff0000, // Red base color
+      transparent: true,
+      opacity: this.currentOpacity, // Use smoothed opacity state
+    })
     this.cube = new THREE.Mesh(geometry, material)
     this.scene.add(this.cube)
     // Cube will be centered at (0,0,0) by default
@@ -70,10 +81,30 @@ export default class CubeVisualizer {
     // Use arrow function to maintain 'this' context for requestAnimationFrame
     requestAnimationFrame(this.animate.bind(this))
 
-    // Rotate the cube
+    // Rotate the cube and update opacity based on volume
     if (this.cube) {
       this.cube.rotation.x += 0.01
       this.cube.rotation.y += 0.01
+
+      // Smoothly interpolate current opacity towards target opacity
+      this.currentOpacity = THREE.MathUtils.lerp(
+        this.currentOpacity,
+        this.targetOpacity,
+        this.lerpFactor
+      )
+      this.cube.material.opacity = this.currentOpacity
+
+      // Smoothly interpolate current scale towards target scale
+      this.currentScale = THREE.MathUtils.lerp(
+        this.currentScale,
+        this.targetScale,
+        this.lerpFactor
+      )
+      this.cube.scale.set(
+        this.currentScale,
+        this.currentScale,
+        this.currentScale
+      )
     }
 
     if (this.renderer && this.scene && this.camera) {
@@ -92,11 +123,32 @@ export default class CubeVisualizer {
 
   // Removed updateCubePosition method
 
-  // Optional method to change cube color based on state
+  // Method to change cube color based on state (Now uses shades of red)
   setRecordingState(isRecording) {
     if (this.cube) {
-      this.cube.material.color.setHex(isRecording ? 0xff0000 : 0xaaaaaa) // Red when recording, grey otherwise
-      console.log(`Cube color set for recording state: ${isRecording}`)
+      // Keep it red, maybe slightly brighter when recording? Or just keep it red.
+      // Let's keep it simple for now and just ensure it stays red.
+      // If a visual distinction is needed later, we can adjust brightness/emissiveness.
+      this.cube.material.color.setHex(0xff0000) // Always red
+      console.log(`Cube recording state: ${isRecording} (Color remains red)`)
     }
+  }
+
+  // Method to receive volume updates and set the target opacity
+  updateVolume(volumeLevel) {
+    // Clamp volume between 0 and 1
+    this.currentVolume = Math.max(0, Math.min(1, volumeLevel))
+
+    // Map volume (0-1) to target opacity (e.g., 0.1 to 1.0)
+    const minOpacity = 0.1
+    const maxOpacity = 1.0
+    this.targetOpacity =
+      minOpacity + this.currentVolume * (maxOpacity - minOpacity)
+
+    // Map volume (0-1) to target scale (e.g., 0.8 to 1.2)
+    const minScale = 0.8
+    const maxScale = 1.2
+    this.targetScale = minScale + this.currentVolume * (maxScale - minScale)
+    // console.log(`CubeVisualizer volume: ${this.currentVolume}, targetOpacity: ${this.targetOpacity}, targetScale: ${this.targetScale}`); // Debugging
   }
 }

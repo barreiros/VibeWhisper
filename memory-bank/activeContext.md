@@ -6,8 +6,53 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 
 - **Testing:** Focus on testing recent features (concurrent transcriptions, language/prompt settings, window focus) **and the new 3D transcription window visual**.
 - **Refinements:** Address minor UX issues like transcription window closure.
+- **Implement Cube Volume Reactivity:** Make the 3D cube's opacity react to microphone input volume.
 
 ## Recent Changes
+
+- **Adjust Cube Smoothing (Slower/Progressive) (2025-04-02):**
+
+  - Modified `src/core/CubeVisualizer.js`: Reduced `lerpFactor` from `0.3` back to `0.1` for slower, more progressive opacity and scale transitions, dampening abrupt volume changes.
+
+- **Add Cube Scaling Effect (Volume-Based) (2025-04-02):**
+
+  - Modified `src/core/CubeVisualizer.js`:
+    - Added `targetScale` and `currentScale` state variables.
+    - Updated `updateVolume` to calculate `targetScale` based on volume (mapping 0-1 to 0.8-1.2 range).
+    - Updated `animate` loop to smoothly interpolate `currentScale` towards `targetScale` using `lerpFactor`.
+    - Applied `currentScale` to the cube's `scale` property.
+
+- **Adjust Cube Opacity Smoothing (Faster) (2025-04-02):**
+
+  - Modified `src/core/CubeVisualizer.js`: Increased `lerpFactor` from `0.1` to `0.3` for faster opacity transitions.
+
+- **Refine Cube Visuals (Smoothing & Color) (2025-04-02):**
+
+  - Modified `src/core/CubeVisualizer.js`:
+    - Changed base cube color to red (`0xff0000`).
+    - Implemented opacity smoothing using `THREE.MathUtils.lerp` between `currentOpacity` and `targetOpacity` in the `animate` loop.
+    - Added `targetOpacity` and `currentOpacity` state variables.
+    - Updated `updateVolume` to set `targetOpacity`.
+    - Updated `setRecordingState` to keep the color red.
+
+- **Implement Cube Volume Reactivity (2025-04-02):**
+
+  - Modified `src/core/AudioRecorder.js`:
+    - Added logic to listen to the raw audio stream (`data` event).
+    - Calculates RMS volume from audio chunks.
+    - Normalizes volume to a 0-1 range (with tuning).
+    - Sends normalized volume via a new IPC channel (`audio-volume-update`), throttled to avoid overwhelming the renderer.
+  - Modified `src/preload/transcriptionPreload.js`:
+    - Added `audio-volume-update` to `validReceiveChannels`.
+    - Exposed `onAudioVolumeUpdate` helper via `contextBridge`.
+  - Modified `src/core/TranscriptionRenderer.js`:
+    - Added listener for `onAudioVolumeUpdate`.
+    - Calls a new `updateVolume` method on the `CubeVisualizer` instance.
+  - Modified `src/core/CubeVisualizer.js`:
+    - Added `currentVolume` property.
+    - Added `updateVolume(volumeLevel)` method to receive and store the normalized volume.
+    - Modified the material to be transparent (`transparent: true`).
+    - Modified the `animate` loop to update the cube material's `opacity` based on `currentVolume`, mapping it to a visible range (e.g., 0.1 to 1.0).
 
 - **Replace Transcription Window Icon with 3D Cube (2025-04-02):**
 
@@ -96,8 +141,12 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 2.  **Test Transcription Prompt Setting:** Run the application and verify the prompt functionality.
 3.  **Test Input Language Setting:** Run the application and verify the language setting functionality.
 4.  **Test Transcription Window Focus:** Verify the transcription window appears without stealing focus.
-5.  **Test 3D Cube Visual:** Run the application (`npm run dev` or `npm start`) and verify the transcription window displays a rotating grey cube on a transparent background. Check for rendering issues or excessive resource usage.
-6.  **Update Memory Bank:** Update `progress.md`, `techContext.md`, and `systemPatterns.md`. (This step)
+5.  **Test 3D Cube Volume Reactivity:** Run the application (`npm run dev` or `npm start`) and verify:
+    - The transcription window displays a rotating grey cube.
+    - The cube's **opacity changes** based on microphone input volume (louder = more opaque).
+    - Check for visual glitches, performance impact (CPU/GPU usage), and appropriate **opacity and scale** range and **slower, more progressive smoothness**.
+    - Verify the cube color remains red.
+6.  **Update Memory Bank:** Update `progress.md`, `techContext.md`, and `systemPatterns.md`. (Updating now)
 7.  **Await User Feedback/Next Task:** After documentation and testing, await further instructions.
 
 ## Active Decisions/Considerations
@@ -113,5 +162,6 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 - **Transcription Prompt Setting:** Added. Allows users to provide contextual prompts to the OpenAI Whisper API via the `prompt` parameter.
 - **Concurrent Transcription Handling:** Implemented queuing mechanism in `TranscriptionService.js` and unique temporary file generation in `AudioRecorder.js` to handle overlapping requests correctly. Results are stored and combined before pasting.
 - **Transcription Window Focus:** The transcription window is now configured to appear without stealing focus from the active application (`showInactive()`).
+- **3D Cube Volume Reactivity:** Implemented and refined. The **red** cube's **opacity AND scale** now change **more slowly and progressively (smoothed with lerpFactor=0.1)** based on microphone input volume calculated in `AudioRecorder.js` and sent via IPC (`audio-volume-update`) to `CubeVisualizer.js`.
 - **Removed Standard Menu Bar (2025-04-02):** Commented out `Menu.setApplicationMenu(menu)` in `src/core/AppManager.js` to remove the standard File/Edit/View etc. menu bar. Access to Settings and Quit is now solely through the system tray icon managed by `TrayManager.js`. The Dock icon remains visible on macOS.
 - **Prevent Settings Window Auto-Show (2025-04-02):** Modified `src/core/WindowManager.js` to set `show: false` in the `BrowserWindow` options for the settings window, preventing it from opening automatically on application start. It now only opens when requested via the tray menu.

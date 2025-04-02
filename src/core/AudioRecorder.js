@@ -58,6 +58,8 @@ export default class AudioRecorder {
     this.recordingTimerId = null
     this.recordingStartTime = null
     this.currentAudioFilePath = null // Add property to store the current file path
+    this.lastVolumeSendTime = 0 // Track last volume send time
+    this.volumeSendInterval = 100 // Send volume updates every 100ms (adjust as needed)
 
     this.ensureTempDir()
     console.log('AudioRecorder initialized.')
@@ -209,8 +211,46 @@ export default class AudioRecorder {
       this.handleRecordingError() // Centralize error handling
     })
 
-    // Pipe the audio data to the file stream
-    this.recordingProcess.stream().pipe(this.audioFileStream)
+    // Pipe the audio data to the file stream AND process for volume
+    const audioStream = this.recordingProcess.stream()
+    audioStream.pipe(this.audioFileStream)
+
+    // --- Volume Calculation ---
+    audioStream.on('data', (chunk) => {
+      // Throttle sending updates
+      const now = Date.now()
+      if (now - this.lastVolumeSendTime < this.volumeSendInterval) {
+        return
+      }
+      this.lastVolumeSendTime = now
+
+      // Calculate RMS volume
+      let sumOfSquares = 0
+      // Assuming 16-bit PCM little-endian audio
+      for (let i = 0; i < chunk.length; i += 2) {
+        // Read 16-bit sample
+        const sample = chunk.readInt16LE(i)
+        // Normalize sample to -1.0 to 1.0 (approx)
+        const normalizedSample = sample / 32768.0
+        sumOfSquares += normalizedSample * normalizedSample
+      }
+      const rms = Math.sqrt(sumOfSquares / (chunk.length / 2))
+
+      // Normalize RMS to a 0-1 range (needs tuning based on typical levels)
+      // This is a simple linear mapping, might need adjustment (e.g., logarithmic)
+      const maxExpectedRms = 0.3 // Adjust this based on testing!
+      let normalizedVolume = Math.min(rms / maxExpectedRms, 1.0)
+
+      // Add a small boost to make lower volumes more visible
+      normalizedVolume = Math.sqrt(normalizedVolume) // Apply sqrt curve
+
+      // Send normalized volume to the transcription window
+      this.windowManager?.sendToTranscriptionWindow(
+        'audio-volume-update',
+        normalizedVolume
+      )
+    })
+    // --- End Volume Calculation ---
 
     // Start the maximum duration timer (e.g., 2 minutes)
     const maxDurationMs = 2 * 60 * 1000
