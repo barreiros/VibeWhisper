@@ -1,4 +1,4 @@
-// Removed fs import
+// Removed app, fs, path imports related to debug saving
 import OpenAI from 'openai' // Required for type checking if needed, client passed in
 import { toFile } from 'openai' // Import the toFile helper
 import { keyboard, Key, clipboard } from '@nut-tree-fork/nut-js'
@@ -40,6 +40,8 @@ export default class TranscriptionService {
       // No file cleanup needed
       return
     }
+
+    // Removed DEBUG code block
 
     console.log(
       `TranscriptionService: Attempting transcription via OpenAI API for buffer.`

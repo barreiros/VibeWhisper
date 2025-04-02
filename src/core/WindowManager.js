@@ -42,7 +42,7 @@ export default class WindowManager {
     ) // <-- UNCOMMENTED
 
     // Optional: Open DevTools for debugging the background process
-    this.backgroundWindow.webContents.openDevTools({ mode: 'detach' }) // <-- UNCOMMENTED
+    // this.backgroundWindow.webContents.openDevTools({ mode: 'detach' }) // <-- Commented out
 
     this.backgroundWindow.on('closed', () => {
       console.log('WindowManager: Background window closed.')
@@ -117,7 +117,7 @@ export default class WindowManager {
     ) // Updated path to settings.html
 
     // Open the DevTools (optional, for debugging)
-    this.settingsWindow.webContents.openDevTools() // <-- Uncommented
+    // this.settingsWindow.webContents.openDevTools() // <-- Commented out
 
     this.settingsWindow.on('closed', () => {
       console.log('WindowManager: Settings window closed.')
@@ -183,7 +183,7 @@ export default class WindowManager {
     ) // Updated path
 
     // Open the DevTools for the transcription window
-    this.transcriptionWindow.webContents.openDevTools({ mode: 'detach' }) // <-- Added, detach to avoid overlapping small window
+    // this.transcriptionWindow.webContents.openDevTools({ mode: 'detach' }) // <-- Commented out
 
     this.transcriptionWindow.on('closed', () => {
       console.log('WindowManager: Transcription window closed.')
