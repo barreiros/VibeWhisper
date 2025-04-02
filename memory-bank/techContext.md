@@ -37,6 +37,7 @@ _This file details the specific technologies used in the project, development se
     - Set the OpenAI API key via the Settings UI. A fallback can be set via an `OPENAI_API_KEY` environment variable (e.g., in a `.env` file).
     - Configure the desired global hotkey via the Settings UI.
     - Select the microphone input via the Settings UI.
+    - Optionally select the input language for transcription via the Settings UI (defaults to auto-detect).
 4.  **Running:**
     - **Development:** `npm run dev` (Starts CSS watcher and Electron with auto-reload via `electron-reload`).
     - **Production-like:** `npm start` (Builds CSS once, runs Electron via the `src/core/App.js` entry point).
@@ -56,6 +57,6 @@ _This file details the specific technologies used in the project, development se
   - Audio recording setup might differ slightly between OSes.
   - Text pasting via `@nut-tree-fork/nut-js` might require specific accessibility permissions depending on the OS (especially macOS).
 - **Build Process:** Requires a CSS build step for Tailwind. `electron-builder` configuration in `package.json` needs to correctly include the `src/` directory and all necessary HTML/JS/CSS files.
-- **Security:** The OpenAI API key is stored using `electron-store`. Communication between main and renderer processes is secured using `contextBridge` in dedicated preload scripts (`settingsPreload.js`, `transcriptionPreload.js`) with whitelisted IPC channels.
+- **Security:** The OpenAI API key and other settings (hotkey, microphone, language, usage duration) are stored using `electron-store`. Communication between main and renderer processes is secured using `contextBridge` in dedicated preload scripts (`settingsPreload.js`, `transcriptionPreload.js`) with whitelisted IPC channels.
 
 _This document should be updated when dependencies are added/removed, the build process changes, or significant technical constraints are identified._

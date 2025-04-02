@@ -29,6 +29,7 @@ The application captures audio from the user's microphone, transcribes it into t
   - OpenAI API Key
   - Global Hotkey
   - Microphone Input Source
+  - **Input Language** (for transcription, defaults to auto-detect)
   - Viewing estimated API usage cost.
 - Small, frameless, always-on-top Transcription window (`transcription.html`) appears during recording to show live transcription text.
 

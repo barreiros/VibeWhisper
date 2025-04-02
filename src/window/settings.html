@@ -39,6 +39,26 @@
         </select>
     </div>
 
+    <div class="settings-section bg-white p-6 rounded-lg shadow-md mb-6">
+        <h2 class="text-xl font-semibold mb-4">Input Language</h2>
+        <label for="language-select" class="block mb-2 font-medium">Select Transcription Language:</label>
+        <select id="language-select" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Auto-Detect</option>
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="it">Italian</option>
+            <option value="pt">Portuguese</option>
+            <option value="uk">Ukrainian</option>
+            <option value="zh">Chinese</option>
+            <option value="ja">Japanese</option>
+            <option value="ko">Korean</option>
+            <!-- Add more languages as needed -->
+        </select>
+        <p class="small-text text-xs text-gray-600 mt-2">Specifying the language can improve transcription accuracy. Leave as 'Auto-Detect' if unsure.</p>
+    </div>
+
     <div class="usage-section bg-white p-6 rounded-lg shadow-md mb-6">
         <h2 class="text-xl font-semibold mb-4">Estimated OpenAI Usage</h2>
         <p>Total Transcription Time: <span id="total-duration" class="font-mono">0.00</span> seconds</p>

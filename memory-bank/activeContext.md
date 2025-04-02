@@ -2,9 +2,9 @@
 
 _This file tracks the current work focus, recent changes, immediate next steps, and active decisions or considerations. It bridges the gap between the broader context files and the day-to-day progress._
 
-## Current Focus (2025-04-02 - ES Module Conversion)
+## Current Focus (2025-04-02 - Add Input Language Setting)
 
-- **ES Module Conversion:** Migrated main process code from CommonJS (`require`) to ES Modules (`import`/`export`).
+- **Add Input Language Setting:** Implementing UI and logic to allow users to specify the input language for OpenAI transcription.
 
 ## Recent Changes
 
@@ -15,6 +15,13 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
   - Implemented `__dirname` equivalents using `import.meta.url` where necessary (e.g., `WindowManager.js`, `App.js`).
   - Used `createRequire` in `App.js` to handle the CommonJS `electron-reload` dependency.
   - Preload scripts (`settingsPreload.js`, `transcriptionPreload.js`) and Renderer scripts (`Renderer.js`, `TranscriptionRenderer.js`) remain unchanged as they don't use CommonJS or are compatible.
+- **Add Input Language Setting (2025-04-02):**
+  - Added language dropdown to `src/window/settings.html`.
+  - Updated `src/core/Renderer.js` to load/save language setting via IPC.
+  - Updated `src/preload/settingsPreload.js` to expose `setLanguage` IPC channel.
+  - Updated `src/core/IpcHandler.js` to handle `set-language` IPC calls and save to `SettingsStore`.
+  - Updated `src/core/SettingsStore.js` to include `language` in defaults and `getAll`.
+  - Updated `src/core/TranscriptionService.js` to retrieve language setting and pass it to the OpenAI API call.
 - **Refactored Main Process (Prior - 2025-04-01):**
   - Created manager classes: `AppManager`, `WindowManager`, `SettingsStore`, `TrayManager`, `HotkeyManager`, `IpcHandler`, `AudioRecorder`, `TranscriptionService` in `src/main/`.
   - Created new entry point `src/main/index.js`.
@@ -35,10 +42,13 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 
 ## Immediate Next Steps
 
-1.  **Test ES Module Conversion:** Run the application (`npm run dev` or `npm start`) to ensure the conversion to ES Modules works correctly. Verify:
-    - Application starts without errors related to module loading (`ERR_MODULE_NOT_FOUND`, `ERR_REQUIRE_ESM`, etc.).
-    - All previous functionalities (settings load/save, hotkey, recording, transcription, pasting, tray, menu, logging) still work as expected.
-2.  **Await User Feedback/Next Task:** After testing, await further instructions.
+1.  **Test Input Language Setting:** Run the application (`npm run dev` or `npm start`) and verify:
+    - The language dropdown appears in the Settings window.
+    - The previously selected language (or "Auto-Detect") is loaded correctly.
+    - Changing the language selection saves the setting (check console logs or subsequent loads).
+    - Transcription requests correctly use the selected language (check `TranscriptionService` logs for `Using language setting: ...`). Test with "Auto-Detect" and a specific language.
+2.  **Update Memory Bank:** Update `progress.md` and `.clinerules`.
+3.  **Await User Feedback/Next Task:** After testing and documentation, await further instructions.
 
 ## Active Decisions/Considerations
 
@@ -49,5 +59,6 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 - **Hotkey Activation/Deactivation:** Implemented. `HotkeyManager` triggers `AudioRecorder.toggleRecording`. Recording stops on second press or after a 2-minute timer. Silence detection is not the primary stop mechanism.
 - **Error Handling/User Feedback:** Refactoring provides better structure, but detailed error handling (e.g., SoX not found, API key invalid, paste failed) and clear user feedback in the UI (Settings/Transcription windows) needs ongoing review and improvement.
 - **Renderer Updates:** Renderer scripts (`Renderer.js`, `TranscriptionRenderer.js`) were checked and did not require changes for the ES Module conversion itself, as they rely on the preload bridge.
+- **Input Language Setting:** Added. Allows users to specify the input language for potentially better accuracy with OpenAI Whisper. Defaults to auto-detect.
 
 _This file should be updated frequently, ideally after each significant work session or change in focus._

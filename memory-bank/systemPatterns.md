@@ -25,7 +25,7 @@ SuperWhisper follows the standard Electron application architecture, now refacto
     - Run in a Chromium environment (sandboxed).
     - Responsible for rendering the User Interface (HTML, CSS, JS).
     - Limited access to system resources; communicate with the Main Process via dedicated preload scripts and IPC channels managed by `IpcHandler.js`.
-    - **Settings Window (`settings.html`, `Renderer.js`):** Displays configuration options, interacts with the user, and communicates with the Main Process via `src/preload/settingsPreload.js`. Styled with Tailwind CSS. (Note: Script is `Renderer.js` in `src/core/`)
+    - **Settings Window (`settings.html`, `Renderer.js`):** Displays configuration options (API key, hotkey, microphone, language), interacts with the user, and communicates with the Main Process via `src/preload/settingsPreload.js`. Styled with Tailwind CSS. (Note: Script is `Renderer.js` in `src/core/`)
     - **Transcription Window (`transcription.html`, `TranscriptionRenderer.js`):** A minimal, frameless window to display live transcription text received from the Main Process via `src/preload/transcriptionPreload.js`. (Note: Script is `TranscriptionRenderer.js` in `src/core/`)
 
 ## Key Technical Decisions
@@ -41,7 +41,7 @@ SuperWhisper follows the standard Electron application architecture, now refacto
 ## Design Patterns
 
 - **Inter-Process Communication (IPC):** Communication is strictly managed via `contextBridge` in dedicated preload scripts (`settingsPreload.js`, `transcriptionPreload.js`) and centralized handlers in `IpcHandler.js`. Whitelisted channels ensure secure communication for:
-  - Getting/setting configuration (API key, hotkey, microphone).
+  - Getting/setting configuration (API key, hotkey, microphone, language).
   - Receiving status updates (logs, errors, transcription text).
   - Getting usage statistics.
 - **Event-Driven:** The application reacts to events like hotkey presses (via `HotkeyManager`), IPC messages (via `IpcHandler`), app lifecycle events (via `AppManager`), and internal events between managers.
@@ -83,7 +83,7 @@ graph TD
         HotkeyMan -- Triggers --> AudioRec; # toggleRecording
 
         IPCHan -- Handles --> IPCMain[IPC Main Events];
-        IPCHan -- Uses --> Store;
+        IPCHan -- Uses --> Store; # Get/Set settings (API Key, Hotkey, Mic, Language, Usage)
         IPCHan -- Uses --> HotkeyMan; # Re-register
         IPCHan -- Uses --> AppMan; # Re-init OpenAI
         IPCHan -- Uses --> WinMan; # Send messages to windows
@@ -97,6 +97,7 @@ graph TD
 
         TransSvc -- Uses --> OpenAIClient;
         TransSvc -- Reads --> TempFile;
+        TransSvc -- Uses --> Store; # Get language setting
         TransSvc -- Uses --> WinMan; # Update TransWin
         TransSvc -- Pastes via --> NutJS[nut-js Keyboard/Clipboard];
         TransSvc -- Deletes --> TempFile;

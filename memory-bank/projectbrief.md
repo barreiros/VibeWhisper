@@ -18,6 +18,7 @@ To create a desktop application named SuperWhisper that:
   - OpenAI API Key
   - Global Hotkey
   - Microphone Input Source
+  - Input Language (for transcription)
   - Viewing estimated API usage cost.
 - A small, always-on-top window displaying live transcription during recording.
 - Cross-platform compatibility (initial focus likely on macOS based on current environment).

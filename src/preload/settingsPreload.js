@@ -12,6 +12,7 @@ const validInvokeChannels = [
   'set-api-key',
   'set-hotkey',
   'get-usage-stats',
+  'set-language', // Added channel for setting language
 ] // Channels renderer <-> main (request/response)
 
 console.log('Settings Preload Script Loaded.')
@@ -62,6 +63,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setApiKey: (apiKey) => ipcRenderer.invoke('set-api-key', apiKey),
   setHotkey: (hotkey) => ipcRenderer.invoke('set-hotkey', hotkey),
   setMicrophone: (micId) => ipcRenderer.send('set-microphone', micId), // Using send as it's one-way
+  setLanguage: (languageCode) =>
+    ipcRenderer.invoke('set-language', languageCode), // Added helper for setting language
   getUsageStats: () => ipcRenderer.invoke('get-usage-stats'),
 
   // Listener for log messages

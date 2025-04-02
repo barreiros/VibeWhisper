@@ -19,6 +19,7 @@ class SettingsStore {
           apiKey: '',
           hotkey: 'CommandOrControl+Shift+Space',
           microphone: 'default',
+          language: '', // Added language setting, default to Auto-Detect
           totalDurationSeconds: 0,
         },
       })
@@ -57,6 +58,7 @@ class SettingsStore {
       apiKey: this.get('apiKey'), // get() already checks initialization
       hotkey: this.get('hotkey'),
       microphone: this.get('microphone'),
+      language: this.get('language'), // Added language to getAll
       totalDurationSeconds: this.get('totalDurationSeconds'),
     }
   }

@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const setHotkeyBtn = document.getElementById('set-hotkey-btn')
   const currentHotkeySpan = document.getElementById('current-hotkey')
   const micSelect = document.getElementById('mic-select')
+  const languageSelect = document.getElementById('language-select') // Added language select element
   const statusMessage = document.getElementById('status-message')
   // API Key elements
   const apiKeyInput = document.getElementById('api-key-input')
@@ -137,6 +138,26 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStatus(`Microphone setting saved: ${selectedMicLabel}`)
   })
 
+  // --- Language Selection ---
+  languageSelect.addEventListener('change', (event) => {
+    const selectedLanguage = event.target.value
+    const selectedLanguageLabel =
+      event.target.options[event.target.selectedIndex].text
+    console.log(
+      `Language selected: Code=${selectedLanguage}, Label=${selectedLanguageLabel}`
+    )
+    // Send to main process via preload script
+    window.electronAPI.setLanguage(selectedLanguage).then((result) => {
+      if (result.success) {
+        updateStatus(`Input language saved: ${selectedLanguageLabel}`)
+      } else {
+        updateStatus(`Error saving language: ${result.error}`)
+        // Optionally revert UI by reloading settings
+        loadInitialSettings()
+      }
+    })
+  })
+
   // --- Status Updates ---
   function updateStatus(message) {
     statusMessage.textContent = message
@@ -173,8 +194,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // Small delay to allow populateMicrophones to potentially finish
       setTimeout(() => {
         micSelect.value = settings.microphone || 'default'
+        micSelect.value = settings.microphone || 'default'
         console.log(`Set microphone dropdown to: ${micSelect.value}`)
       }, 200) // Adjust delay if needed
+      languageSelect.value = settings.language || '' // Load language setting, default to '' (Auto-Detect)
+      console.log(`Set language dropdown to: ${languageSelect.value}`)
       updateStatus('Settings loaded.')
     })
   }

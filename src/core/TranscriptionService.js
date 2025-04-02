@@ -54,12 +54,29 @@ export default class TranscriptionService {
     )
 
     try {
-      const transcription = await this.openai.audio.transcriptions.create({
+      // Get the language setting
+      const languageCode = this.settingsStore.get('language') // Get from store
+      console.log(
+        `TranscriptionService: Using language setting: '${
+          languageCode || 'Auto-Detect'
+        }'`
+      )
+
+      // Prepare options for the API call
+      const transcriptionOptions = {
         file: fs.createReadStream(filePath), // Create a read stream from the file
         model: 'whisper-1', // Use the standard whisper-1 model
-        // language: "es", // Optional: Specify language if known
         // response_format: "text" // Optional: Get plain text directly
-      })
+      }
+
+      // Add language only if it's set (not empty string)
+      if (languageCode) {
+        transcriptionOptions.language = languageCode
+      }
+
+      const transcription = await this.openai.audio.transcriptions.create(
+        transcriptionOptions
+      )
 
       console.log('TranscriptionService: OpenAI API response received.')
       const resultText = transcription?.text?.trim()

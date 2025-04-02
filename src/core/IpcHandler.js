@@ -112,6 +112,21 @@ export default class IpcHandler {
       // this.audioRecorder?.setDevice(micId);
     })
 
+    // Handle request from renderer to set the input language
+    ipcMain.handle('set-language', async (event, languageCode) => {
+      console.log(`IPC: Received set-language request: ${languageCode}`)
+      try {
+        // Use the passed instance
+        this.settingsStore.set('language', languageCode)
+        console.log(`IPC: Input language saved: ${languageCode}`)
+        // No immediate action needed in other managers for language change
+        return { success: true }
+      } catch (error) {
+        console.error('IPC: Error saving language setting:', error)
+        return { success: false, error: error.message }
+      }
+    })
+
     // Handle manual start/stop requests from renderer (delegated to AudioRecorder)
     ipcMain.on('start-recording', () => {
       console.log('IPC: Received start-recording request from renderer.')

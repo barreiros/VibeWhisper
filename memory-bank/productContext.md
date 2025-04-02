@@ -8,7 +8,7 @@ Users need a quick and seamless way to convert spoken thoughts or commands into 
 
 ## How It Should Work (User Perspective)
 
-1.  **Setup:** The user installs the app, enters their OpenAI API key in the settings, and configures a global hotkey. They might also select their preferred microphone.
+1.  **Setup:** The user installs the app, enters their OpenAI API key in the settings, configures a global hotkey, and optionally selects their preferred microphone and input language for transcription.
 2.  **Activation:** While working in any application, the user presses the configured global hotkey.
 3.  **Recording:** A minimal, unobtrusive indicator (like the small transcription window) appears, showing that the app is listening. The user speaks.
 4.  **Transcription:** The app sends the audio to OpenAI and displays the live transcription (or final result) in the indicator window.
