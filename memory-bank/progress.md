@@ -20,6 +20,7 @@ _This file documents what currently works, what is left to build, the overall st
   - Transcription window display and updates (`WindowManager.js`, `TranscriptionRenderer.js`) are functional. **The window now appears without stealing focus (`showInactive()`)**.
   - System tray (`TrayManager.js`) is functional (provides Settings/Quit).
   - Application menu (`AppManager.js`) template is created but **no longer set** (standard menu bar removed). Access is via tray only. Dock icon remains visible on macOS.
+  - Settings window (`WindowManager.js`) now starts hidden (`show: false`) and only appears when requested via tray.
   - Console log redirection to settings window is implemented.
 - **Installation:** `package.json` defines dependencies. `install.sh` might automate some setup.
 - **Memory Bank:** Core documentation files are initialized and updated.
@@ -39,9 +40,9 @@ _This file documents what currently works, what is left to build, the overall st
 
 ## Current Status
 
-- **Core Functionality Implemented:** The main workflow (hotkey -> record (unique file) -> transcribe (with language/prompt options, handling concurrency via queue) -> paste) is functional. Settings are persistent. UI elements are connected. ES Module conversion complete. Concurrent transcription handling (queuing + unique files) implemented. **Transcription window focus behavior updated.** **Standard application menu bar removed; access is now via system tray icon. Dock icon remains visible on macOS.**
-- **Refinement Needed:** Focus shifts to testing (concurrency, prompt, language, **window focus**, **tray functionality**), improving user experience (like transcription window closure), enhancing error handling, and preparing for distribution.
-- **Documentation Updated:** Memory Bank reflects the current state including the new language, prompt, updated concurrency features, **transcription window focus change, menu bar removal, and Dock icon visibility**.
+- **Core Functionality Implemented:** The main workflow (hotkey -> record (unique file) -> transcribe (with language/prompt options, handling concurrency via queue) -> paste) is functional. Settings are persistent. UI elements are connected. ES Module conversion complete. Concurrent transcription handling (queuing + unique files) implemented. **Transcription window focus behavior updated.** **Standard application menu bar removed; access is now via system tray icon. Dock icon remains visible on macOS.** **Settings window starts hidden.**
+- **Refinement Needed:** Focus shifts to testing (concurrency, prompt, language, **window focus**, **tray functionality**, **hidden settings window start**), improving user experience (like transcription window closure), enhancing error handling, and preparing for distribution.
+- **Documentation Updated:** Memory Bank reflects the current state including the new language, prompt, updated concurrency features, **transcription window focus change, menu bar removal, Dock icon visibility, and hidden settings window start**.
 
 ## Known Issues/Bugs (as of 2025-04-02 - Focus Change)
 

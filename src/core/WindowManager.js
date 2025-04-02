@@ -33,7 +33,7 @@ export default class WindowManager {
         nodeIntegration: false,
         contextIsolation: true,
       },
-      show: true, // Show it immediately for now
+      show: false, // Start hidden
     })
 
     // Load the settings.html of the app.

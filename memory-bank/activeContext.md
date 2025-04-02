@@ -92,5 +92,6 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 - **Concurrent Transcription Handling:** Implemented queuing mechanism in `TranscriptionService.js` and unique temporary file generation in `AudioRecorder.js` to handle overlapping requests correctly. Results are stored and combined before pasting.
 - **Transcription Window Focus:** The transcription window is now configured to appear without stealing focus from the active application (`showInactive()`).
 - **Removed Standard Menu Bar (2025-04-02):** Commented out `Menu.setApplicationMenu(menu)` in `src/core/AppManager.js` to remove the standard File/Edit/View etc. menu bar. Access to Settings and Quit is now solely through the system tray icon managed by `TrayManager.js`. The Dock icon remains visible on macOS.
+- **Prevent Settings Window Auto-Show (2025-04-02):** Modified `src/core/WindowManager.js` to set `show: false` in the `BrowserWindow` options for the settings window, preventing it from opening automatically on application start. It now only opens when requested via the tray menu.
 
 _This file should be updated frequently, ideally after each significant work session or change in focus._
