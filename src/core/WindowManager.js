@@ -72,9 +72,9 @@ export default class WindowManager {
       console.log('WindowManager: Transcription window already exists.')
       // Ensure it's visible if called again while existing
       if (!this.transcriptionWindow.isVisible()) {
-        this.transcriptionWindow.show()
+        this.transcriptionWindow.showInactive() // Show without focusing
       }
-      this.transcriptionWindow.focus() // Focus might not work well on frameless, but try
+      // No longer trying to focus it here
       return this.transcriptionWindow
     }
 
@@ -114,10 +114,12 @@ export default class WindowManager {
       this.transcriptionWindow = null
     })
 
-    // Show after a short delay to allow loading
+    // Show after a short delay to allow loading, without activating/focusing
     this.transcriptionWindow.once('ready-to-show', () => {
-      console.log('WindowManager: Transcription window ready to show.')
-      this.transcriptionWindow.show()
+      console.log(
+        'WindowManager: Transcription window ready to show (inactive).'
+      )
+      this.transcriptionWindow.showInactive() // Show without taking focus
       // Initial message sending will be handled by the calling logic (e.g., AudioRecorder)
     })
 
@@ -146,8 +148,8 @@ export default class WindowManager {
 
   showTranscriptionWindow() {
     if (this.transcriptionWindow && !this.transcriptionWindow.isDestroyed()) {
-      console.log('WindowManager: Showing transcription window.')
-      this.transcriptionWindow.show()
+      console.log('WindowManager: Showing transcription window (inactive).')
+      this.transcriptionWindow.showInactive() // Show without taking focus
       // Optionally send 'Listening...' message here or let caller handle it
       // this.sendToTranscriptionWindow('transcription-update', 'Listening...');
     } else {

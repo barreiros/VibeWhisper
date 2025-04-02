@@ -2,9 +2,10 @@
 
 _This file tracks the current work focus, recent changes, immediate next steps, and active decisions or considerations. It bridges the gap between the broader context files and the day-to-day progress._
 
-## Current Focus (2025-04-02 - Handle Concurrent Transcriptions)
+## Current Focus (2025-04-02 - Testing & Refinements)
 
-- **Handle Concurrent Transcriptions:** Implement logic to queue transcription results when multiple recordings are initiated before the previous ones complete, pasting the combined text at the end.
+- **Testing:** Focus on testing recent features (concurrent transcriptions, language/prompt settings, window focus).
+- **Refinements:** Address minor UX issues like transcription window closure.
 
 ## Recent Changes
 
@@ -42,6 +43,8 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
     - Decrement counter in the `finally` block.
     - When the counter reaches zero, join all queued results, paste the combined text, and clear the queue.
     - Its existing `cleanupTempFile(filePath)` method correctly handles deleting the unique file path passed to it.
+- **Prevent Transcription Window Focus Stealing (2025-04-02):**
+  - Modified `src/core/WindowManager.js` (`createTranscriptionWindow`, `showTranscriptionWindow`) to use `showInactive()` instead of `show()` and removed `focus()` calls. This prevents the transcription window from taking focus when it appears.
 - **Refactored Main Process (Prior - 2025-04-01):**
   - Created manager classes: `AppManager`, `WindowManager`, `SettingsStore`, `TrayManager`, `HotkeyManager`, `IpcHandler`, `AudioRecorder`, `TranscriptionService` in `src/core/` (corrected path).
   - Created new entry point `src/main/index.js`.
@@ -69,9 +72,11 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
     - Verify that temporary audio files (`recording-*.wav`) are correctly created and deleted from the temp directory (`app.getPath('temp')/barreiros-superwhisper-audio`).
     - Test cases with one or both transcriptions failing.
     - Test with more than two concurrent requests if possible.
-2.  **Test Transcription Prompt Setting:** (Still relevant from previous task) Run the application and verify the prompt functionality.
-3.  **Update Memory Bank:** Update `progress.md` and `.clinerules`. (This step)
-4.  **Await User Feedback/Next Task:** After documentation and testing, await further instructions.
+2.  **Test Transcription Prompt Setting:** Run the application and verify the prompt functionality.
+3.  **Test Input Language Setting:** Run the application and verify the language setting functionality.
+4.  **Test Transcription Window Focus:** Verify the transcription window appears without stealing focus.
+5.  **Update Memory Bank:** Update `progress.md`. (This step)
+6.  **Await User Feedback/Next Task:** After documentation and testing, await further instructions.
 
 ## Active Decisions/Considerations
 
@@ -85,5 +90,6 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 - **Input Language Setting:** Added. Allows users to specify the input language for potentially better accuracy with OpenAI Whisper. Defaults to auto-detect.
 - **Transcription Prompt Setting:** Added. Allows users to provide contextual prompts to the OpenAI Whisper API via the `prompt` parameter.
 - **Concurrent Transcription Handling:** Implemented queuing mechanism in `TranscriptionService.js` and unique temporary file generation in `AudioRecorder.js` to handle overlapping requests correctly. Results are stored and combined before pasting.
+- **Transcription Window Focus:** The transcription window is now configured to appear without stealing focus from the active application (`showInactive()`).
 
 _This file should be updated frequently, ideally after each significant work session or change in focus._
