@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/iconTemplate@2x.png" alt="VibeWhisper Icon" width="128"/>
+</p>
+
 # VibeWhisper
 
 ### A SuperWhisper Alternative
