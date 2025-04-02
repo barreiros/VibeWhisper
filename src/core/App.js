@@ -77,9 +77,9 @@ async function initializeApp() {
           type: 'info',
           title: 'Accessibility Access Required',
           message:
-            'Barreiros SuperWhisper needs Accessibility access to paste transcribed text.',
+            'VibeWhisper needs Accessibility access to paste transcribed text.',
           detail:
-            "If pasting doesn't work, please go to System Settings > Privacy & Security > Accessibility and ensure Barreiros SuperWhisper is enabled. You may need to restart the application after granting access.",
+            "If pasting doesn't work, please go to System Settings > Privacy & Security > Accessibility and ensure VibeWhisper is enabled. You may need to restart the application after granting access.",
           buttons: ['OK'],
         })
         .catch((err) =>
@@ -154,17 +154,20 @@ async function initializeApp() {
     trayManager: trayManager,
     hotkeyManager: hotkeyManager,
     ipcHandler: ipcHandler,
+    // Removed reinitializeOpenAI from here
     // audioRecorder: audioRecorder, // AppManager doesn't directly need recorder?
     // transcriptionService: transcriptionService // AppManager doesn't directly need transcription?
   })
 
   ipcHandler.setManagers({
-    appManager: appManager,
+    // Removed appManager reference as it's not needed for re-init now
     hotkeyManager: hotkeyManager,
     windowManager: windowManager,
     audioRecorder: audioRecorder, // Keep for now, might change how it's used
     transcriptionService: transcriptionService, // Pass TranscriptionService to IPC Handler
     settingsStore: settingsStore,
+    reinitializeOpenAI: () =>
+      initializeOrReinitializeOpenAIClient(settingsStore), // Pass re-init function directly
   })
 
   // Set the callback for the hotkey manager to use the audio recorder's toggle method
@@ -178,5 +181,52 @@ async function initializeApp() {
   console.log('Main Index: Application initialization sequence complete.')
 }
 
+// --- OpenAI Client Initialization Logic ---
+let openaiClient = null // Keep client instance accessible
+let transcriptionServiceRef = null // Keep reference to transcription service
+
+async function initializeOrReinitializeOpenAIClient(settingsStore) {
+  const apiKey = settingsStore.get('apiKey') || process.env.OPENAI_API_KEY
+  // DEBUG: Log the key being used for initialization/re-initialization
+  console.log(
+    `[OpenAI Init] Using API Key starting with: ${
+      apiKey ? apiKey.substring(0, 5) + '...' : 'NONE'
+    }`
+  )
+  if (apiKey) {
+    try {
+      openaiClient = new OpenAI({ apiKey })
+      console.log('OpenAI client initialized/re-initialized successfully.')
+      if (transcriptionServiceRef) {
+        transcriptionServiceRef.setOpenAIClient(openaiClient) // Update service
+      } else {
+        console.warn(
+          'TranscriptionService reference not yet available during OpenAI init.'
+        )
+      }
+      return true // Indicate success
+    } catch (error) {
+      console.error('Failed to initialize/re-initialize OpenAI client:', error)
+      openaiClient = null
+      if (transcriptionServiceRef) {
+        transcriptionServiceRef.setOpenAIClient(null) // Clear client in service on error
+      }
+      return false // Indicate failure
+    }
+  } else {
+    console.error('OpenAI API Key not found in settings or .env file.')
+    openaiClient = null
+    if (transcriptionServiceRef) {
+      transcriptionServiceRef.setOpenAIClient(null) // Clear client in service
+    }
+    return false // Indicate failure (no key)
+  }
+}
+// --- End OpenAI Client Initialization Logic ---
+
+// --- Main Application Initialization ---
+// REMOVED DUPLICATE initializeApp definition that started here.
+// The correct definition is above this section.
+
 // Start the application
-initializeApp()
+initializeApp() // Call the original function defined earlier

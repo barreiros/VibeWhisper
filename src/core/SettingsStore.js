@@ -14,7 +14,9 @@ class SettingsStore {
     }
     try {
       const { default: Store } = await import('electron-store')
+      // Use 'vibewhisper' as the project name for config storage
       this.store = new Store({
+        name: 'vibewhisper-config', // Explicitly name the config file
         defaults: {
           apiKey: '',
           hotkey: 'CommandOrControl+Shift+Space',

@@ -15,6 +15,7 @@ export default class AppManager {
     this.trayManager = null // To be set later
     this.hotkeyManager = null // To be set later
     this.ipcHandler = null // To be set later
+    this.reinitializeOpenAI = null // Add property to store the function reference
   }
 
   // Method to set references to other managers after they are created
@@ -23,6 +24,7 @@ export default class AppManager {
     this.trayManager = managers.trayManager
     this.hotkeyManager = managers.hotkeyManager
     this.ipcHandler = managers.ipcHandler
+    this.reinitializeOpenAI = managers.reinitializeOpenAI // Store the passed function
     // Add others as needed (AudioRecorder, TranscriptionService, etc.)
   }
 

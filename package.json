@@ -1,7 +1,7 @@
 {
-  "name": "barreiros-superwhisper",
+  "name": "vibewhisper",
   "version": "0.1.0",
-  "description": "Application to capture audio, transcribe locally with Whisper, and paste text.",
+  "description": "Application to capture audio, transcribe via API (OpenAI/Gemini), and paste text.",
   "main": "src/core/App.js",
   "type": "module",
   "scripts": {
@@ -42,7 +42,8 @@
     "three": "^0.175.0"
   },
   "build": {
-    "appId": "com.barreiros.superwhisper",
+    "appId": "com.barreiros.vibewhisper",
+    "productName": "VibeWhisper",
     "mac": {
       "category": "public.app-category.utilities"
     },

@@ -5,11 +5,11 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuperWhisper Settings</title>
+    <title>VibeWhisper Settings</title>
     <link rel="stylesheet" href="../css/output.css"> <!-- Updated path -->
 </head>
 <body class="bg-gray-100 text-gray-800 p-8 font-sans">
-    <h1 class="text-3xl font-bold mb-6 text-center">SuperWhisper Settings</h1>
+    <h1 class="text-3xl font-bold mb-6 text-center">VibeWhisper Settings</h1>
 
     <!-- Removed Local Model Section -->
 
@@ -25,7 +25,10 @@
         <h2 class="text-xl font-semibold mb-4">Global Hotkey</h2>
         <label for="hotkey-input" class="block mb-2 font-medium">Set Hotkey:</label>
         <input type="text" id="hotkey-input" placeholder="Click and press desired keys" readonly class="w-full p-2 border border-gray-300 rounded mb-2 bg-gray-100 cursor-not-allowed">
-        <button id="set-hotkey-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Set Hotkey</button>
+        <div class="flex space-x-2">
+            <button id="set-hotkey-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Set Hotkey</button>
+            <button id="reset-hotkey-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Reset to Default</button>
+        </div>
         <p class="mt-2">Current Hotkey: <span id="current-hotkey" class="font-mono bg-gray-200 px-2 py-1 rounded">CommandOrControl+Shift+Space</span></p>
         <p class="small-text text-xs text-gray-600 mt-2">Press the desired key combination to activate/deactivate transcription.</p>
     </div>

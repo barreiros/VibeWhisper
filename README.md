@@ -1,4 +1,4 @@
-# Barreiros SuperWhisper (OpenAI API Version)
+# VibeWhisper (OpenAI API Version)
 
 > **Note:** Currently, this application is primarily developed and tested for **macOS**. While it might run on Windows/Linux, full functionality (especially regarding permissions and pasting) is not guaranteed on those platforms yet.
 
@@ -20,17 +20,17 @@ A simple Electron application that runs in the background, listens for a global 
 ## Installation & Setup
 
 1.  **Download the Installer:**
-    - Go to the [**Releases Page**](https://github.com/your-username/barreiros-superwhisper/releases) (Replace with your actual link).
+    - Go to the [**Releases Page**](https://github.com/your-username/vibewhisper/releases) (Replace with your actual link).
     - Download the appropriate installer for your operating system (e.g., `.dmg` for macOS, `.exe` for Windows, `.AppImage` or `.deb`/`.rpm` for Linux).
 2.  **Run the Installer:**
     - Double-click the downloaded file and follow the on-screen instructions to install the application.
 3.  **Configure OpenAI API Key:**
-    - Launch Barreiros SuperWhisper.
+    - Launch VibeWhisper.
     - Open the **Settings** window (usually accessible from the system tray icon or the application menu).
     - Enter your OpenAI API key, which you can obtain from [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys). The key will be stored securely locally.
 4.  **Grant Permissions:**
     - **Microphone Access:** The application needs permission to access your microphone for recording. Your operating system (macOS or Windows) will prompt you for this the first time you try to record. Please grant access. You can check the status in System Settings > Privacy & Security > Microphone.
-    - **Accessibility Access (macOS only):** On macOS, the application needs Accessibility permission to automatically paste the transcribed text. The application will prompt you for this on first launch. If pasting fails, ensure Barreiros SuperWhisper is checked in System Settings > Privacy & Security > Accessibility.
+    - **Accessibility Access (macOS only):** On macOS, the application needs Accessibility permission to automatically paste the transcribed text. The application will prompt you for this on first launch. If pasting fails, ensure VibeWhisper is checked in System Settings > Privacy & Security > Accessibility.
 
 ## How to Use
 
@@ -60,8 +60,8 @@ If you want to contribute or run the application from the source code:
     - **Permissions:** Ensure you have granted Microphone and (on macOS) Accessibility permissions as described in the "Installation & Setup" section above.
 2.  **Clone the Repository:**
     ```bash
-    git clone https://github.com/your-username/barreiros-superwhisper.git # Replace with your actual repo URL
-    cd barreiros-superwhisper
+    git clone https://github.com/your-username/vibewhisper.git # Replace with your actual repo URL
+    cd vibewhisper
     ```
 3.  **Install Dependencies:**
     ```bash

@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const checkAccessibilityButton = document.getElementById(
     'check-accessibility-button'
   )
+  const resetHotkeyBtn = document.getElementById('reset-hotkey-btn') // Added reset button
   // Microphone Permission elements
   const microphonePermissionSection = document.getElementById(
     'microphone-permission-section'
@@ -75,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (event.ctrlKey) modifiers.push('Control')
     if (event.altKey) modifiers.push('Alt')
     if (event.shiftKey) modifiers.push('Shift')
-    if (event.metaKey) modifiers.push('Command') // Meta key is Command on macOS, Windows key on Windows
+    if (event.metaKey) modifiers.push('Cmd') // Use 'Cmd' for Electron accelerator string
 
     // Use event.code for non-modifier keys to get physical key regardless of layout
     // Exclude modifier keys themselves from the main key part
@@ -121,6 +122,25 @@ document.addEventListener('DOMContentLoaded', () => {
       hotkeyInput.value = '' // Clear the input
       updateStatus('Hotkey setting cancelled.')
     }
+  })
+
+  // Add listener for the reset button
+  resetHotkeyBtn.addEventListener('click', () => {
+    const defaultHotkey = 'CommandOrControl+Shift+Space'
+    console.log(`Resetting hotkey to default: ${defaultHotkey}`)
+    window.electronAPI.setHotkey(defaultHotkey).then((result) => {
+      if (result.success) {
+        currentHotkeySpan.textContent = defaultHotkey
+        updateStatus(`Hotkey reset to default: ${defaultHotkey}`)
+        hotkeyInput.value = '' // Clear the input field
+      } else {
+        updateStatus(`Error resetting hotkey: ${result.error}`)
+        // Reload the previously saved hotkey display on failure
+        window.electronAPI.getSettings().then((settings) => {
+          currentHotkeySpan.textContent = settings.hotkey
+        })
+      }
+    })
   })
 
   // --- Microphone Selection ---

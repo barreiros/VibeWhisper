@@ -12,15 +12,17 @@ export default class IpcHandler {
     this.windowManager = null
     this.audioRecorder = null // Will be refactored/removed or repurposed
     this.transcriptionService = null // Add reference for TranscriptionService
+    this.reinitializeOpenAI = null // Add property to store the function reference directly
     console.log('IpcHandler initialized.')
   }
 
   setManagers(managers) {
-    this.appManager = managers.appManager
+    // Removed appManager assignment
     this.hotkeyManager = managers.hotkeyManager
     this.windowManager = managers.windowManager
     this.audioRecorder = managers.audioRecorder // Keep for now, might call methods on it
     this.transcriptionService = managers.transcriptionService // Get TranscriptionService reference
+    this.reinitializeOpenAI = managers.reinitializeOpenAI // Store the passed function directly
     console.log('IpcHandler: Managers set.')
   }
 
@@ -44,8 +46,9 @@ export default class IpcHandler {
         // Use the passed instance
         this.settingsStore.set('apiKey', newApiKey)
         console.log('IPC: API Key saved. Re-initializing OpenAI client...')
-        // Trigger re-initialization in AppManager (or a dedicated service)
-        const initialized = this.appManager?.reinitializeOpenAIClient()
+        // Trigger re-initialization directly using the stored function reference
+        // Explicitly calling the function stored on 'this' instance.
+        const initialized = await this.reinitializeOpenAI?.()
         if (!initialized) {
           console.error(
             'IPC: Failed to re-initialize OpenAI client with the new key.'
