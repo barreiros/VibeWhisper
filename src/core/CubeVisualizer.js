@@ -161,15 +161,15 @@ export default class CubeVisualizer {
     // Clamp volume between 0 and 1
     this.currentVolume = Math.max(0, Math.min(1, volumeLevel))
 
-    // Map volume (0-1) to target opacity (e.g., 0.1 to 1.0)
-    const minOpacity = 0.1
+    // Map volume (0-1) to target opacity (e.g., 0.2 to 1.0) - Increased minOpacity
+    const minOpacity = 0.2 // Increased minimum
     const maxOpacity = 1.0
     this.targetOpacity =
       minOpacity + this.currentVolume * (maxOpacity - minOpacity)
 
-    // Map volume (0-1) to target scale (e.g., 0.8 to 1.2)
-    const minScale = 0.8
-    const maxScale = 1.2
+    // Map volume (0-1) to target scale (e.g., 0.7 to 1.3) - Increased range
+    const minScale = 0.7 // Decreased minimum
+    const maxScale = 1.3 // Increased maximum
     this.targetScale = minScale + this.currentVolume * (maxScale - minScale)
     // console.log(`CubeVisualizer volume: ${this.currentVolume}, targetOpacity: ${this.targetOpacity}, targetScale: ${this.targetScale}`); // Debugging
   }
