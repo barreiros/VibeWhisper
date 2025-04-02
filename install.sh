@@ -29,41 +29,7 @@ else
     echo "- npm found: $(npm --version)"
 fi
 
-# Check for rec (SoX) command (needed for node-record-lpcm16)
-# Note: 'make' is no longer checked as whisper.cpp is not built locally
-if ! command -v rec &> /dev/null
-then
-    echo "Warning: 'rec' command (part of SoX) not found. This is required for audio recording."
-    # Attempt to install SoX using Homebrew on macOS
-    OS_TYPE=$(uname -s)
-    if [ "$OS_TYPE" == "Darwin" ]; then
-        if command -v brew &> /dev/null
-        then
-            echo "Homebrew found. Attempting to install SoX..."
-            if brew install sox; then
-                echo "SoX installed successfully via Homebrew."
-                # Verify rec command again
-                if ! command -v rec &> /dev/null; then
-                     echo "Error: SoX installed, but 'rec' command still not found. Please check your PATH or SoX installation."
-                     exit 1
-                fi
-            else
-                echo "Error: Failed to install SoX using Homebrew. Please install it manually."
-                exit 1
-            fi
-        else
-            echo "Homebrew not found. Please install Homebrew (https://brew.sh/) and then run 'brew install sox', or install SoX manually."
-            exit 1
-        fi
-    else
-        # For other OS (like Linux), provide manual instructions
-        echo "Please install SoX for your system (e.g., 'sudo apt-get install sox' on Debian/Ubuntu, 'sudo yum install sox' on CentOS/Fedora)."
-        exit 1
-    fi
-else
-    echo "- rec (SoX) found"
-fi
-
+# SoX check removed as it's no longer required (using Web Audio API)
 
 echo "Prerequisites check finished."
 
