@@ -1,36 +1,47 @@
-// const transcriptionOutput = document.getElementById('transcription-output') // Removed, element no longer exists
-const micIndicator = document.getElementById('mic-indicator')
+// Import the CubeVisualizer class from its new file
+import CubeVisualizer from './CubeVisualizer.js'
 
-// Listen for transcription updates from the main process
+console.log('TranscriptionRenderer.js loaded')
+
+let visualizer = null
+
+// Initialize the visualizer directly now that import is static
+// (Assuming this script is loaded via <script defer> or after the canvas element)
+const canvas = document.getElementById('scene-canvas')
+if (canvas) {
+  visualizer = new CubeVisualizer(canvas)
+} else {
+  // Might need to wait for DOMContentLoaded if script is loaded early
+  document.addEventListener('DOMContentLoaded', () => {
+    const canvasOnLoad = document.getElementById('scene-canvas')
+    if (canvasOnLoad) {
+      visualizer = new CubeVisualizer(canvasOnLoad)
+    } else {
+      console.error(
+        'Canvas element #scene-canvas still not found on DOMContentLoaded!'
+      )
+    }
+  })
+  console.error('Canvas element #scene-canvas not found initially!')
+}
+
+// --- Keep Existing IPC Listeners ---
+
+// Listen for transcription updates (no visual element to update now)
 window.electronAPI.onTranscriptionUpdate((event, text) => {
-  // No text element to update anymore
-  // console.log('Transcription update received:', text); // Optional: Keep for debugging if needed
+  // console.log('Transcription update received:', text); // Optional: Keep for debugging
 })
 
-// Listen for recording state changes from the main process
+// Listen for recording state changes
+// Now calls a method on the visualizer instance
 window.electronAPI.onRecordingStateChange((event, isRecording) => {
-  if (micIndicator) {
-    if (isRecording) {
-      micIndicator.classList.add('active')
-      // transcriptionOutput.textContent = 'Listening...' // Removed
-    } else {
-      micIndicator.classList.remove('active')
-      // transcriptionOutput.textContent = 'Stopped.'; // Removed
-    }
+  console.log('Recording state changed IPC received:', isRecording) // Optional: Keep for debugging
+  if (visualizer) {
+    visualizer.setRecordingState(isRecording)
   }
 })
 
-// Optional: Listen for a signal to close the window
+// Listen for a signal to close the window
 window.electronAPI.onCloseWindow(() => {
-  // <-- Corrected function name
   window.close() // Close the window when instructed
 })
-
-// Initial state message - Removed as there's no text element
-// if (transcriptionOutput) {
-//   transcriptionOutput.textContent = 'Ready'
-// }
-// Ensure the indicator starts in the non-active state visually
-if (micIndicator) {
-  micIndicator.classList.remove('active')
-}

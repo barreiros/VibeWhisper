@@ -22,6 +22,7 @@ _This file details the specific technologies used in the project, development se
 - `tailwindcss`, `postcss`, `autoprefixer`: For building the Tailwind CSS (`output.css` from `style.css`).
 - `concurrently`: Used in `npm run dev` to run multiple commands (CSS watch + Electron).
 - `electron-reload`: Used in `npm run dev` for automatic reloading during development (watches root directory now).
+- `three`: Used by `TranscriptionRenderer.js` for rendering the 3D cube visual in the transcription window.
 
 ## Development Setup
 

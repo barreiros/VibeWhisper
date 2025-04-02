@@ -1,13 +1,27 @@
-# Active Context: Barreiros_SuperWhisper
+the the the the the the the the the the the the the th the tough .# Active Context: Barreiros_SuperWhisper
 
 _This file tracks the current work focus, recent changes, immediate next steps, and active decisions or considerations. It bridges the gap between the broader context files and the day-to-day progress._
 
-## Current Focus (2025-04-02 - Testing & Refinements)
+## Current Focus (2025-04-02 - Testing & 3D Visual)
 
-- **Testing:** Focus on testing recent features (concurrent transcriptions, language/prompt settings, window focus).
+- **Testing:** Focus on testing recent features (concurrent transcriptions, language/prompt settings, window focus) **and the new 3D transcription window visual**.
 - **Refinements:** Address minor UX issues like transcription window closure.
 
 ## Recent Changes
+
+- **Replace Transcription Window Icon with 3D Cube (2025-04-02):**
+
+  - Installed `three` npm package.
+  - Modified `src/window/transcription.html`: Replaced the microphone indicator `div` with a `<canvas id="scene-canvas">`. Added styles for transparent background and canvas sizing.
+  - Modified `src/core/TranscriptionRenderer.js`:
+    - Imported `three`.
+    - Implemented Three.js scene setup (scene, camera, lights).
+    - Created a `WebGLRenderer` attached to the canvas with a transparent background (`alpha: true`).
+    - Added a rotating grey cube (`BoxGeometry`, `MeshStandardMaterial`) to the scene.
+    - Added an animation loop (`requestAnimationFrame`) to render the scene and rotate the cube.
+    - Added window resize handling.
+    - Removed code related to the old `mic-indicator` element. Kept IPC listeners for potential future use (e.g., changing cube color based on recording state).
+  - **Refactored 3D Logic (2025-04-02):** Encapsulated the Three.js setup, animation loop, and resize handling within a `CubeVisualizer` class. **Moved `CubeVisualizer` class to its own file (`src/core/CubeVisualizer.js`)**. `src/core/TranscriptionRenderer.js` now imports and instantiates `CubeVisualizer`. **Reverted Three.js import (now within `CubeVisualizer.js`) back to dynamic `import()` due to renderer module resolution issues with static import.**
 
 - **ES Module Conversion (2025-04-02):**
   - Added `"type": "module"` to `package.json`.
@@ -45,6 +59,8 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
     - Its existing `cleanupTempFile(filePath)` method correctly handles deleting the unique file path passed to it.
 - **Prevent Transcription Window Focus Stealing (2025-04-02):**
   - Modified `src/core/WindowManager.js` (`createTranscriptionWindow`, `showTranscriptionWindow`) to use `showInactive()` instead of `show()` and removed `focus()` calls. This prevents the transcription window from taking focus when it appears.
+- **Improve Transcription Window Transparency (2025-04-02):**
+  - Added `hasShadow: false` to the `BrowserWindow` options in `src/core/WindowManager.js` for the transcription window to remove the native OS shadow, further enhancing transparency.
 - **Refactored Main Process (Prior - 2025-04-01):**
   - Created manager classes: `AppManager`, `WindowManager`, `SettingsStore`, `TrayManager`, `HotkeyManager`, `IpcHandler`, `AudioRecorder`, `TranscriptionService` in `src/core/` (corrected path).
   - Created new entry point `src/main/index.js`.
@@ -75,8 +91,9 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 2.  **Test Transcription Prompt Setting:** Run the application and verify the prompt functionality.
 3.  **Test Input Language Setting:** Run the application and verify the language setting functionality.
 4.  **Test Transcription Window Focus:** Verify the transcription window appears without stealing focus.
-5.  **Update Memory Bank:** Update `progress.md`. (This step)
-6.  **Await User Feedback/Next Task:** After documentation and testing, await further instructions.
+5.  **Test 3D Cube Visual:** Run the application (`npm run dev` or `npm start`) and verify the transcription window displays a rotating grey cube on a transparent background. Check for rendering issues or excessive resource usage.
+6.  **Update Memory Bank:** Update `progress.md`, `techContext.md`, and `systemPatterns.md`. (This step)
+7.  **Await User Feedback/Next Task:** After documentation and testing, await further instructions.
 
 ## Active Decisions/Considerations
 

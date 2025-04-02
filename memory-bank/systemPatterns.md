@@ -26,7 +26,7 @@ SuperWhisper follows the standard Electron application architecture, now refacto
     - Responsible for rendering the User Interface (HTML, CSS, JS).
     - Limited access to system resources; communicate with the Main Process via dedicated preload scripts and IPC channels managed by `IpcHandler.js`.
     - **Settings Window (`settings.html`, `Renderer.js`):** Displays configuration options (API key, hotkey, microphone, language), interacts with the user, and communicates with the Main Process via `src/preload/settingsPreload.js`. Styled with Tailwind CSS. (Note: Script is `Renderer.js` in `src/core/`)
-    - **Transcription Window (`transcription.html`, `TranscriptionRenderer.js`):** A minimal, frameless window to display live transcription text received from the Main Process via `src/preload/transcriptionPreload.js`. (Note: Script is `TranscriptionRenderer.js` in `src/core/`)
+    - **Transcription Window (`transcription.html`, `TranscriptionRenderer.js`):** A minimal, frameless window that now renders a 3D visual (a rotating cube using **Three.js**) on a `<canvas>` element with a transparent background. It still listens for IPC messages (e.g., recording state, close signal) via `src/preload/transcriptionPreload.js` but no longer displays transcription text directly. (Note: Script is `TranscriptionRenderer.js` in `src/core/`)
 
 ## Key Technical Decisions
 
@@ -113,7 +113,7 @@ graph TD
     end
 
     subgraph Renderer - Transcription (transcription.html, TranscriptionRenderer.js, transcriptionPreload.js)
-        TransWin --> TransUI{Transcription Display};
+        TransWin --> TransUI{3D Cube Canvas};
         TransUI -- Interacts via --> TransPreload[transcriptionPreload.js];
         TransPreload -- Communicates via --> IPCHan;
     end

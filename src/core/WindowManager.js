@@ -84,6 +84,7 @@ export default class WindowManager {
       height: 150, // Adjust size later if needed for just a button
       frame: false,
       transparent: true, // <-- Add transparency
+      hasShadow: false, // <-- Disable window shadow for better transparency
       alwaysOnTop: true,
       skipTaskbar: true,
       resizable: false,
