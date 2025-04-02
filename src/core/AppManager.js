@@ -264,8 +264,10 @@ export default class AppManager {
     ]
 
     const menu = Menu.buildFromTemplate(menuTemplate)
-    Menu.setApplicationMenu(menu)
-    console.log('AppManager: Application menu created.')
+    // Menu.setApplicationMenu(menu) // <-- Commented out to remove the standard menu bar
+    console.log(
+      'AppManager: Application menu template created, but NOT set (using tray only).'
+    )
   }
 
   getIsQuitting() {
