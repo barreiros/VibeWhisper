@@ -1,8 +1,14 @@
-# VibeWhisper (OpenAI API Version)
+# VibeWhisper
+
+### A SuperWhisper Alternative
 
 > **Note:** Currently, this application is primarily developed and tested for **macOS**. While it might run on Windows/Linux, full functionality (especially regarding permissions and pasting) is not guaranteed on those platforms yet.
 
 A simple Electron application that runs in the background, listens for a global hotkey, records audio from the microphone, transcribes it using the **OpenAI Speech-to-Text API**, and pastes the resulting text into the active application.
+
+## Motivation
+
+This application was created out of a need for a reliable and free alternative to existing commercial dictation software, specifically the "SuperWhisper" application. The free tier of SuperWhisper was found to be quite slow, with transcription quality that wasn't ideal. Additionally, there were issues with the performance of its remote models. VibeWhisper aims to provide a fast, accurate (leveraging the OpenAI API), and seamless dictation experience without these limitations. (A version compatible with the Google Gemini API is also planned).
 
 ## Features
 
