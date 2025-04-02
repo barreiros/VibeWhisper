@@ -1,7 +1,8 @@
-const { app, Tray, Menu, nativeImage } = require('electron')
-const path = require('path')
+import { app, Tray, Menu, nativeImage } from 'electron'
+import path from 'path'
 
-class TrayManager {
+export default class TrayManager {
+  // Use export default
   constructor(windowManager) {
     this.windowManager = windowManager // To show/create settings window
     this.tray = null
@@ -106,5 +107,4 @@ class TrayManager {
     this.tray = null
   }
 }
-
-module.exports = TrayManager
+// Default export is at the class declaration now

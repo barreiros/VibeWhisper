@@ -5,7 +5,7 @@ _This file details the specific technologies used in the project, development se
 ## Core Technologies
 
 - **Application Framework:** Electron (`electron` npm package) - Enables building desktop apps with web technologies.
-- **Runtime:** Node.js (comes with Electron's Main process) - For backend logic, system access, and package management.
+- **Runtime:** Node.js (comes with Electron's Main process) - For backend logic, system access, and package management. **Main process uses ES Modules (`import`/`export`)**.
 - **Frontend:** HTML, CSS, JavaScript - Standard web technologies for building the Renderer process UIs.
 - **Speech-to-Text Service:** OpenAI API - External cloud service for transcription.
 - **UI Styling (Settings):** Tailwind CSS (`tailwindcss` npm package) - Utility-first CSS framework. Requires PostCSS (`postcss`, `autoprefixer`) for processing.
@@ -39,11 +39,16 @@ _This file details the specific technologies used in the project, development se
     - Select the microphone input via the Settings UI.
 4.  **Running:**
     - **Development:** `npm run dev` (Starts CSS watcher and Electron with auto-reload via `electron-reload`).
-    - **Production-like:** `npm start` (Builds CSS once, runs Electron via the new `src/main/index.js` entry point).
+    - **Production-like:** `npm start` (Builds CSS once, runs Electron via the `src/core/App.js` entry point).
 5.  **CSS:** Tailwind CSS requires a build step. `output.css` is generated from `style.css` using `tailwind.config.js` and `postcss.config.js`.
 
 ## Technical Constraints
 
+- **Module System (Main Process):** Uses ES Modules (`"type": "module"` in `package.json`). This requires:
+  - Using `import`/`export` syntax.
+  - Including `.js` extensions in relative file imports (e.g., `import AppManager from './AppManager.js'`).
+  - Using `import.meta.url`, `fileURLToPath`, and `dirname` to replicate `__dirname`/`__filename` functionality where needed.
+  - Potentially using `createRequire` to import CommonJS modules if they don't support ESM directly (e.g., `electron-reload`).
 - **Online Only:** Relies on the OpenAI API, so requires an active internet connection for transcription.
 - **API Costs:** OpenAI API usage incurs costs based on the amount of audio processed.
 - **Platform Dependencies:**

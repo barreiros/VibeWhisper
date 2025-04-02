@@ -1,9 +1,10 @@
-const fs = require('fs')
-const OpenAI = require('openai') // Required for type checking if needed, client passed in
-const { keyboard, Key, clipboard } = require('@nut-tree-fork/nut-js')
+import fs from 'fs'
+import OpenAI from 'openai' // Required for type checking if needed, client passed in
+import { keyboard, Key, clipboard } from '@nut-tree-fork/nut-js'
 // SettingsStore instance is now passed in constructor
 
-class TranscriptionService {
+export default class TranscriptionService {
+  // Use export default
   constructor(windowManager, settingsStore) {
     // Accept settingsStore instance
     this.windowManager = windowManager // To update transcription window
@@ -177,5 +178,4 @@ class TranscriptionService {
     }
   }
 }
-
-module.exports = TranscriptionService
+// Default export is at the class declaration now

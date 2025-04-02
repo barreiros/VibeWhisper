@@ -6,12 +6,12 @@ _This file documents the system architecture, key technical decisions, design pa
 
 SuperWhisper follows the standard Electron application architecture, now refactored for better separation of concerns:
 
-1.  **Main Process (`src/main/index.js` entry point):**
+1.  **Main Process (`src/core/App.js` entry point):**
 
-    - Runs in a Node.js environment with full system access.
+    - Runs in a Node.js environment with full system access, now using **ES Modules (`import`/`export`)**.
     - Orchestrates the initialization and interaction of various manager classes responsible for specific functionalities.
-    - The original `main.js` now acts only as a stub loader.
-    - **Key Manager Classes:**
+    - The original `main.js` is deprecated/removed; `src/core/App.js` is the entry point.
+    - **Key Manager Classes (all using ES Modules):**
       - `AppManager.js`: Manages Electron app lifecycle events (ready, activate, quit) and the application menu.
       - `WindowManager.js`: Creates, manages, and provides access to `BrowserWindow` instances (Settings, Transcription). Handles window-specific events (close, hide).
       - `SettingsStore.js`: Wraps `electron-store` to provide a Singleton interface for persistent application settings (API key, hotkey, etc.).
@@ -25,13 +25,13 @@ SuperWhisper follows the standard Electron application architecture, now refacto
     - Run in a Chromium environment (sandboxed).
     - Responsible for rendering the User Interface (HTML, CSS, JS).
     - Limited access to system resources; communicate with the Main Process via dedicated preload scripts and IPC channels managed by `IpcHandler.js`.
-    - **Settings Window (`index.html`, `renderer.js`):** Displays configuration options, interacts with the user, and communicates with the Main Process via `src/preload/settingsPreload.js`. Styled with Tailwind CSS.
-    - **Transcription Window (`transcription.html`, `transcriptionRenderer.js`):** A minimal, frameless window to display live transcription text received from the Main Process via `src/preload/transcriptionPreload.js`.
+    - **Settings Window (`settings.html`, `Renderer.js`):** Displays configuration options, interacts with the user, and communicates with the Main Process via `src/preload/settingsPreload.js`. Styled with Tailwind CSS. (Note: Script is `Renderer.js` in `src/core/`)
+    - **Transcription Window (`transcription.html`, `TranscriptionRenderer.js`):** A minimal, frameless window to display live transcription text received from the Main Process via `src/preload/transcriptionPreload.js`. (Note: Script is `TranscriptionRenderer.js` in `src/core/`)
 
 ## Key Technical Decisions
 
 - **Framework:** Electron chosen for cross-platform desktop application development using web technologies (HTML, CSS, JS).
-- **Backend Logic:** Node.js (inherent in Electron's Main Process) for system interactions.
+- **Backend Logic:** Node.js (inherent in Electron's Main Process) for system interactions, using **ES Modules (`import`/`export`)** syntax (`"type": "module"` in `package.json`). Requires `.js` extensions in relative imports and handling of `__dirname` equivalents.
 - **Speech-to-Text:** OpenAI API (cloud-based) selected for high accuracy, requiring an internet connection and API key. No local models are used.
 - **Global Hotkey:** A library compatible with Electron (e.g., `electron-global-shortcut`) is used to register and listen for the user-defined hotkey system-wide.
 - **Audio Capture:** A Node.js compatible library or system utility (like SoX, potentially wrapped) is used by the Main Process to record audio from the selected microphone.
@@ -47,21 +47,22 @@ SuperWhisper follows the standard Electron application architecture, now refacto
 - **Event-Driven:** The application reacts to events like hotkey presses (via `HotkeyManager`), IPC messages (via `IpcHandler`), app lifecycle events (via `AppManager`), and internal events between managers.
 - **Configuration Management:** Settings are stored persistently using `electron-store`, managed via the `SettingsStore.js` Singleton.
 - **Singleton Pattern:** Used for `SettingsStore.js` to ensure a single source of truth for configuration.
-- **Dependency Injection (Manual):** Managers are instantiated in `src/main/index.js` and necessary dependencies (references to other managers) are passed during initialization or via dedicated setter methods (e.g., `setManagers`, `setToggleCallback`).
+- **Dependency Injection (Manual):** Managers are instantiated in `src/core/App.js` and necessary dependencies (references to other managers) are passed during initialization or via dedicated setter methods (e.g., `setManagers`, `setToggleCallback`).
+- **Module Handling:** Main process uses ES Modules. Preload and Renderer scripts use standard browser/Electron APIs and the `contextBridge`, not requiring direct module syntax changes for this migration. CommonJS dependencies in the main process (like `electron-reload`) are handled using `createRequire`.
 
-## Component Relationships (Refactored)
+## Component Relationships (Refactored, ESM)
 
 ```mermaid
 graph TD
-    subgraph Main Process (src/main/)
-        Entry[index.js] --> AppMan(AppManager);
-        Entry --> WinMan(WindowManager);
-        Entry --> Store(SettingsStore);
-        Entry --> TrayMan(TrayManager);
-        Entry --> HotkeyMan(HotkeyManager);
-        Entry --> IPCHan(IpcHandler);
-        Entry --> AudioRec(AudioRecorder);
-        Entry --> TransSvc(TranscriptionService);
+    subgraph Main Process (src/core/, ESM)
+        Entry[App.js] --> AppMan(AppManager.js);
+        Entry --> WinMan(WindowManager.js);
+        Entry --> Store(SettingsStore.js);
+        Entry --> TrayMan(TrayManager.js);
+        Entry --> HotkeyMan(HotkeyManager.js);
+        Entry --> IPCHan(IpcHandler.js);
+        Entry --> AudioRec(AudioRecorder.js);
+        Entry --> TransSvc(TranscriptionService.js);
         Entry --> OpenAIClient{OpenAI Client Init};
 
         AppMan -- Manages --> AppEvents[App Lifecycle Events];
@@ -104,13 +105,13 @@ graph TD
         NutJS -- Interacts --> ActiveAppInput([Active Application Input]);
     end
 
-    subgraph Renderer - Settings (index.html, renderer.js, settingsPreload.js)
+    subgraph Renderer - Settings (settings.html, Renderer.js, settingsPreload.js)
         SettingsWin --> SettingsUI{UI Elements};
         SettingsUI -- Interacts via --> SettingsPreload[settingsPreload.js];
         SettingsPreload -- Communicates via --> IPCHan;
     end
 
-    subgraph Renderer - Transcription (transcription.html, transcriptionRenderer.js, transcriptionPreload.js)
+    subgraph Renderer - Transcription (transcription.html, TranscriptionRenderer.js, transcriptionPreload.js)
         TransWin --> TransUI{Transcription Display};
         TransUI -- Interacts via --> TransPreload[transcriptionPreload.js];
         TransPreload -- Communicates via --> IPCHan;

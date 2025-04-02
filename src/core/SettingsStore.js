@@ -77,4 +77,4 @@ class SettingsStore {
 }
 
 // Export the class, not an instance, as initialization is now async
-module.exports = SettingsStore
+export default SettingsStore // Use export default

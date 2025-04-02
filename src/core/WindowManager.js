@@ -1,7 +1,14 @@
-const { BrowserWindow } = require('electron')
-const path = require('path')
+import { BrowserWindow } from 'electron'
+import path, { dirname } from 'path' // Import dirname
+import { fileURLToPath } from 'url' // Needed for __dirname equivalent
 
-class WindowManager {
+// --- ESM __dirname equivalent ---
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+// --- End ESM __dirname equivalent ---
+
+export default class WindowManager {
+  // Use export default
   constructor(appManager) {
     this.appManager = appManager // Reference to AppManager for isQuitting flag
     this.settingsWindow = null
@@ -193,5 +200,4 @@ class WindowManager {
     )
   }
 }
-
-module.exports = WindowManager
+// Default export is at the class declaration now

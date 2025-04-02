@@ -1,7 +1,7 @@
-const { app } = require('electron')
-const path = require('path')
-const fs = require('fs')
-const record = require('node-record-lpcm16')
+import { app } from 'electron'
+import path from 'path'
+import fs from 'fs'
+import record from 'node-record-lpcm16' // Assuming default export works for ESM
 // SettingsStore instance is now passed in constructor
 
 // Use app's temp directory for temporary audio storage
@@ -9,7 +9,8 @@ const tempBaseDir = app.getPath('temp')
 const tempAudioDir = path.join(tempBaseDir, 'barreiros-superwhisper-audio') // App-specific subfolder
 const tempAudioFile = path.join(tempAudioDir, 'temp_audio.wav') // Temporary audio file path
 
-class AudioRecorder {
+export default class AudioRecorder {
+  // Use export default
   constructor(transcriptionService, windowManager, settingsStore) {
     // Accept settingsStore instance
     this.transcriptionService = transcriptionService // To trigger transcription
@@ -376,5 +377,4 @@ class AudioRecorder {
     return this.isRecording
   }
 }
-
-module.exports = AudioRecorder
+// Default export is at the class declaration now

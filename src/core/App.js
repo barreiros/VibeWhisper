@@ -1,33 +1,46 @@
 // Load environment variables from .env file first
-require('dotenv').config()
+import 'dotenv/config' // Use side-effect import
 
-const { app, dialog } = require('electron') // Add dialog
-const path = require('path')
-const OpenAI = require('openai') // Import OpenAI here for initialization
+import { app, dialog } from 'electron' // Add dialog
+import path, { dirname } from 'path' // Import dirname as well
+import { fileURLToPath } from 'url' // Needed for __dirname equivalent
+import { createRequire } from 'module' // Needed for CommonJS modules like electron-reload
+import OpenAI from 'openai' // Import OpenAI here for initialization
 
-// Import Manager Classes
-const AppManager = require('./AppManager')
-const WindowManager = require('./WindowManager')
-const SettingsStore = require('./SettingsStore') // Now exports the class
-const TrayManager = require('./TrayManager')
-const HotkeyManager = require('./HotkeyManager')
-const IpcHandler = require('./IpcHandler')
-const AudioRecorder = require('./AudioRecorder')
-const TranscriptionService = require('./TranscriptionService')
+// Import Manager Classes (add .js extension)
+import AppManager from './AppManager.js'
+import WindowManager from './WindowManager.js'
+import SettingsStore from './SettingsStore.js' // Now exports the class
+import TrayManager from './TrayManager.js'
+import HotkeyManager from './HotkeyManager.js'
+import IpcHandler from './IpcHandler.js'
+import AudioRecorder from './AudioRecorder.js'
+import TranscriptionService from './TranscriptionService.js'
+
+// --- ESM __dirname equivalent ---
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+// --- End ESM __dirname equivalent ---
 
 // --- Enable electron-reload for development ---
+// electron-reload might be CommonJS, so use createRequire
+const require = createRequire(import.meta.url)
+
 if (process.env.NODE_ENV !== 'production') {
   try {
+    const electronReload = require('electron-reload')
+    const electronPath = require(path.join(
+      __dirname,
+      '..',
+      '..',
+      'node_modules',
+      'electron'
+    ))
+
     // Adjust the path for electron-reload to watch the new structure
-    require('electron-reload')(path.join(__dirname, '..', '..'), {
+    electronReload(path.join(__dirname, '..', '..'), {
       // Watch root directory
-      electron: require(path.join(
-        __dirname,
-        '..',
-        '..',
-        'node_modules',
-        'electron'
-      )),
+      electron: electronPath,
       // Specify folders/files to watch more precisely if needed
       // e.g., watch: [path.join(__dirname, '..'), path.join(__dirname, '..', '..', '*.html'), ...]
       hardResetMethod: 'exit',

@@ -2,13 +2,20 @@
 
 _This file tracks the current work focus, recent changes, immediate next steps, and active decisions or considerations. It bridges the gap between the broader context files and the day-to-day progress._
 
-## Current Focus (2025-04-01 - Refactoring Complete)
+## Current Focus (2025-04-02 - ES Module Conversion)
 
-- **Main Process Refactoring:** Completed the refactoring of `main.js` into separate manager classes within the `src/main/` directory and split preload scripts.
+- **ES Module Conversion:** Migrated main process code from CommonJS (`require`) to ES Modules (`import`/`export`).
 
 ## Recent Changes
 
-- **Refactored Main Process (2025-04-01):**
+- **ES Module Conversion (2025-04-02):**
+  - Added `"type": "module"` to `package.json`.
+  - Converted all `.js` files in `src/core/` (`App.js`, `AppManager.js`, `WindowManager.js`, `SettingsStore.js`, `TrayManager.js`, `HotkeyManager.js`, `IpcHandler.js`, `AudioRecorder.js`, `TranscriptionService.js`) to use `import`/`export` syntax.
+  - Added `.js` extensions to relative imports within `src/core/`.
+  - Implemented `__dirname` equivalents using `import.meta.url` where necessary (e.g., `WindowManager.js`, `App.js`).
+  - Used `createRequire` in `App.js` to handle the CommonJS `electron-reload` dependency.
+  - Preload scripts (`settingsPreload.js`, `transcriptionPreload.js`) and Renderer scripts (`Renderer.js`, `TranscriptionRenderer.js`) remain unchanged as they don't use CommonJS or are compatible.
+- **Refactored Main Process (Prior - 2025-04-01):**
   - Created manager classes: `AppManager`, `WindowManager`, `SettingsStore`, `TrayManager`, `HotkeyManager`, `IpcHandler`, `AudioRecorder`, `TranscriptionService` in `src/main/`.
   - Created new entry point `src/main/index.js`.
   - Updated `main.js` to be a stub loader.
@@ -28,26 +35,19 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 
 ## Immediate Next Steps
 
-1.  **Test Refactoring:** Run the application (`npm run dev` or `npm start`) to ensure the refactored code works as expected. Verify:
-    - Application starts without errors.
-    - Settings window opens and loads/saves settings correctly (API Key, Hotkey, Mic).
-    - Tray icon appears and menu works.
-    - Global hotkey registration works (check console logs for success/failure).
-    - Recording starts/stops via hotkey.
-    - Transcription window appears/updates/stays open.
-    - Transcription occurs and text is pasted.
-    - Debug controls (Start/Stop Recording buttons) function if wired up in `renderer.js`.
-    - Logs appear in the settings window debug area.
-2.  **Address Renderer Logic:** Review `renderer.js` and `transcriptionRenderer.js` to ensure they correctly use the new preload script APIs (`settingsPreload.js`, `transcriptionPreload.js`). Adjust if necessary.
-3.  **Await User Feedback/Next Task:** After testing, await further instructions.
+1.  **Test ES Module Conversion:** Run the application (`npm run dev` or `npm start`) to ensure the conversion to ES Modules works correctly. Verify:
+    - Application starts without errors related to module loading (`ERR_MODULE_NOT_FOUND`, `ERR_REQUIRE_ESM`, etc.).
+    - All previous functionalities (settings load/save, hotkey, recording, transcription, pasting, tray, menu, logging) still work as expected.
+2.  **Await User Feedback/Next Task:** After testing, await further instructions.
 
 ## Active Decisions/Considerations
 
-- **Transcription Window Closure:** Still relevant. Since the window remains open, adding a manual close button/mechanism to `transcription.html`/`transcriptionRenderer.js` should be considered for user convenience.
+- **Module System:** The main process now uses ES Modules. This requires `.js` extensions in relative imports and careful handling of `__dirname`/`__filename` and potential CommonJS dependencies.
+- **Transcription Window Closure:** Still relevant. Since the window remains open, adding a manual close button/mechanism to `transcription.html`/`TranscriptionRenderer.js` should be considered for user convenience.
 - **Audio Recording Library:** Confirmed. `node-record-lpcm16` (requiring SoX) is implemented in `AudioRecorder.js`. PATH modification is included to help find `rec`.
 - **Text Pasting Method:** Confirmed. `@nut-tree-fork/nut-js` is implemented in `TranscriptionService.js`. Potential OS permission requirements noted in `techContext.md`.
 - **Hotkey Activation/Deactivation:** Implemented. `HotkeyManager` triggers `AudioRecorder.toggleRecording`. Recording stops on second press or after a 2-minute timer. Silence detection is not the primary stop mechanism.
 - **Error Handling/User Feedback:** Refactoring provides better structure, but detailed error handling (e.g., SoX not found, API key invalid, paste failed) and clear user feedback in the UI (Settings/Transcription windows) needs ongoing review and improvement.
-- **Renderer Updates:** `renderer.js` and `transcriptionRenderer.js` likely need updates to align with the new preload scripts.
+- **Renderer Updates:** Renderer scripts (`Renderer.js`, `TranscriptionRenderer.js`) were checked and did not require changes for the ES Module conversion itself, as they rely on the preload bridge.
 
 _This file should be updated frequently, ideally after each significant work session or change in focus._

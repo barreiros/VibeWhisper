@@ -1,7 +1,8 @@
-const { ipcMain } = require('electron')
+import { ipcMain } from 'electron'
 // SettingsStore instance is now passed in constructor
 
-class IpcHandler {
+export default class IpcHandler {
+  // Use export default
   constructor(settingsStore) {
     // Accept settingsStore instance
     // References to other managers will be set via setManagers
@@ -148,5 +149,4 @@ class IpcHandler {
     // --- End Log Redirection ---
   }
 }
-
-module.exports = IpcHandler
+// Default export is at the class declaration now

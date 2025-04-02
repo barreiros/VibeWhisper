@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Application to capture audio, transcribe locally with Whisper, and paste text.",
   "main": "src/core/App.js",
+  "type": "module",
   "scripts": {
     "start": "npm run build:css && electron .",
     "watch:css": "node ./node_modules/tailwindcss/lib/cli.js -i ./src/css/style.css -o ./src/css/output.css --watch",

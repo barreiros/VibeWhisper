@@ -1,7 +1,8 @@
-const { globalShortcut } = require('electron')
+import { globalShortcut } from 'electron'
 // SettingsStore instance is now passed in constructor
 
-class HotkeyManager {
+export default class HotkeyManager {
+  // Use export default
   constructor(settingsStore) {
     // Accept settingsStore instance
     this.settingsStore = settingsStore // Store the instance
@@ -88,5 +89,4 @@ class HotkeyManager {
     return this.settingsStore.get('hotkey') // Always get the latest from store
   }
 }
-
-module.exports = HotkeyManager
+// Default export is at the class declaration now

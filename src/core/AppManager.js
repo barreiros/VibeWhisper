@@ -1,9 +1,10 @@
-const { app, BrowserWindow } = require('electron')
-const path = require('path')
+import { app, BrowserWindow, Menu, shell } from 'electron' // Import Menu and shell here
+import path from 'path'
 // SettingsStore instance is now passed in constructor
-// We will import other managers later as needed
+// Other managers are passed via setManagers
 
-class AppManager {
+export default class AppManager {
+  // Use export default
   constructor(settingsStore) {
     // Accept settingsStore instance
     this.settingsStore = settingsStore // Store the instance
@@ -88,7 +89,7 @@ class AppManager {
       // Initialize other managers that depend on the app being ready
       // (Order might matter depending on dependencies)
 
-      // Initialize SettingsStore (already done via singleton import)
+      // SettingsStore is already initialized and passed in constructor
       console.log('Settings loaded via SettingsStore.')
 
       // Initialize IPC Handlers
@@ -120,49 +121,22 @@ class AppManager {
         console.error('AppManager: WindowManager not set before app ready.')
       }
 
-      // Create Application Menu (moved here from main.js)
+      // Create Application Menu
       this.createApplicationMenu()
 
-      // Initialize OpenAI Client (moved to a dedicated service later)
-      // For now, keep the logic from main.js but use SettingsStore
-      this.initializeOpenAIClient()
+      // OpenAI Client initialization is now handled centrally in App.js
+      // and passed to the relevant services (TranscriptionService).
+      // No need to initialize it here anymore.
 
       console.log('AppManager: Initialization complete.')
     })
   }
 
-  // Placeholder for OpenAI initialization - will move to a service
-  initializeOpenAIClient() {
-    // Use the passed instance
-    const apiKey =
-      this.settingsStore.get('apiKey') || process.env.OPENAI_API_KEY
-    if (apiKey) {
-      try {
-        // This should ideally be in a dedicated service/manager
-        const OpenAI = require('openai')
-        global.openai = new OpenAI({ apiKey }) // Store globally for now, refactor later
-        console.log('AppManager: OpenAI client initialized successfully.')
-        return true
-      } catch (error) {
-        console.error('AppManager: Failed to initialize OpenAI client:', error)
-        global.openai = null
-        return false
-      }
-    } else {
-      console.error('AppManager: OpenAI API Key not found.')
-      global.openai = null
-      return false
-    }
-  }
-
-  // Re-initialize OpenAI client, e.g., when API key changes
-  reinitializeOpenAIClient() {
-    console.log('AppManager: Re-initializing OpenAI client...')
-    return this.initializeOpenAIClient()
-  }
+  // Removed initializeOpenAIClient and reinitializeOpenAIClient methods
+  // as this is handled in App.js
 
   createApplicationMenu() {
-    const { Menu } = require('electron') // Import Menu here
+    // Menu is imported at the top now
     const menuTemplate = [
       // { role: 'appMenu' } // Use this for standard macOS app menu items
       ...(process.platform === 'darwin'
@@ -279,7 +253,7 @@ class AppManager {
           {
             label: 'Learn More',
             click: async () => {
-              const { shell } = require('electron')
+              // shell is imported at the top now
               await shell.openExternal(
                 'https://github.com/barreiros/Barreiros_SuperWhisper'
               ) // Link to repo
@@ -298,5 +272,4 @@ class AppManager {
     return this.isQuitting
   }
 }
-
-module.exports = AppManager // Export the class
+// Default export is at the class declaration now
