@@ -2,9 +2,9 @@
 
 _This file tracks the current work focus, recent changes, immediate next steps, and active decisions or considerations. It bridges the gap between the broader context files and the day-to-day progress._
 
-## Current Focus (2025-04-02 - Add Transcription Prompt Setting)
+## Current Focus (2025-04-02 - Handle Concurrent Transcriptions)
 
-- **Add Transcription Prompt Setting:** Implementing UI and logic to allow users to provide contextual prompts/instructions to the OpenAI transcription API.
+- **Handle Concurrent Transcriptions:** Implement logic to queue transcription results when multiple recordings are initiated before the previous ones complete, pasting the combined text at the end.
 
 ## Recent Changes
 
@@ -29,6 +29,19 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
   - Updated `src/core/IpcHandler.js` to handle `set-transcription-prompt` IPC calls and save to `SettingsStore`.
   - Updated `src/core/SettingsStore.js` to include `transcriptionPrompt` in defaults and `getAll`.
   - Updated `src/core/TranscriptionService.js` to retrieve prompt setting and pass it to the OpenAI API call if present.
+- **Handle Concurrent Transcriptions (2025-04-02 - Updated):**
+  - Modified `src/core/AudioRecorder.js` to:
+    - Generate a unique temporary filename (using `randomUUID`) for each recording session (`recording-*.wav`).
+    - Store the unique path in `currentAudioFilePath`.
+    - Pass the specific unique path to `TranscriptionService.transcribeAudioFile`.
+    - Implement `cleanupSpecificFile(filePath)` to delete the correct file upon completion/error within the recorder if needed (e.g., empty file).
+  - Modified `src/core/TranscriptionService.js` to:
+    - Add `activeRequests` counter and `transcriptionQueue` array.
+    - Increment counter when `transcribeAudioFile` starts.
+    - Add successful transcription results to the queue instead of pasting immediately.
+    - Decrement counter in the `finally` block.
+    - When the counter reaches zero, join all queued results, paste the combined text, and clear the queue.
+    - Its existing `cleanupTempFile(filePath)` method correctly handles deleting the unique file path passed to it.
 - **Refactored Main Process (Prior - 2025-04-01):**
   - Created manager classes: `AppManager`, `WindowManager`, `SettingsStore`, `TrayManager`, `HotkeyManager`, `IpcHandler`, `AudioRecorder`, `TranscriptionService` in `src/core/` (corrected path).
   - Created new entry point `src/main/index.js`.
@@ -49,13 +62,16 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 
 ## Immediate Next Steps
 
-1.  **Test Transcription Prompt Setting:** Run the application (`npm run dev` or `npm start`) and verify:
-    - The prompt textarea appears in the Settings window.
-    - The previously saved prompt (or empty) is loaded correctly.
-    - Entering text and clicking "Save Prompt" saves the setting (check console logs or subsequent loads).
-    - Transcription requests correctly use the saved prompt (check `TranscriptionService` logs for `Using prompt: ...`). Test with and without a prompt.
-2.  **Update Memory Bank:** Update `progress.md` and `.clinerules`. (This step)
-3.  **Await User Feedback/Next Task:** After documentation, await further instructions.
+1.  **Test Concurrent Transcription Handling:** Run the application (`npm run dev` or `npm start`) and verify:
+    - Start a recording, stop it, and immediately start a second recording before the first transcription completes.
+    - Check console logs for `activeRequests` incrementing/decrementing and queue additions.
+    - Verify that the final pasted text is the combination of both transcriptions, joined by a space.
+    - Verify that temporary audio files (`recording-*.wav`) are correctly created and deleted from the temp directory (`app.getPath('temp')/barreiros-superwhisper-audio`).
+    - Test cases with one or both transcriptions failing.
+    - Test with more than two concurrent requests if possible.
+2.  **Test Transcription Prompt Setting:** (Still relevant from previous task) Run the application and verify the prompt functionality.
+3.  **Update Memory Bank:** Update `progress.md` and `.clinerules`. (This step)
+4.  **Await User Feedback/Next Task:** After documentation and testing, await further instructions.
 
 ## Active Decisions/Considerations
 
@@ -68,5 +84,6 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 - **Renderer Updates:** Renderer scripts (`Renderer.js`, `TranscriptionRenderer.js`) were checked and did not require changes for the ES Module conversion itself, as they rely on the preload bridge.
 - **Input Language Setting:** Added. Allows users to specify the input language for potentially better accuracy with OpenAI Whisper. Defaults to auto-detect.
 - **Transcription Prompt Setting:** Added. Allows users to provide contextual prompts to the OpenAI Whisper API via the `prompt` parameter.
+- **Concurrent Transcription Handling:** Implemented queuing mechanism in `TranscriptionService.js` and unique temporary file generation in `AudioRecorder.js` to handle overlapping requests correctly. Results are stored and combined before pasting.
 
 _This file should be updated frequently, ideally after each significant work session or change in focus._

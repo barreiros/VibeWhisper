@@ -1,13 +1,14 @@
 import { app } from 'electron'
 import path from 'path'
 import fs from 'fs'
+import { randomUUID } from 'crypto' // Import for generating unique IDs
 import record from 'node-record-lpcm16' // Assuming default export works for ESM
 // SettingsStore instance is now passed in constructor
 
 // Use app's temp directory for temporary audio storage
 const tempBaseDir = app.getPath('temp')
 const tempAudioDir = path.join(tempBaseDir, 'barreiros-superwhisper-audio') // App-specific subfolder
-const tempAudioFile = path.join(tempAudioDir, 'temp_audio.wav') // Temporary audio file path
+// No longer using a single fixed tempAudioFile constant
 
 export default class AudioRecorder {
   // Use export default
@@ -21,6 +22,7 @@ export default class AudioRecorder {
     this.audioFileStream = null
     this.recordingTimerId = null
     this.recordingStartTime = null
+    this.currentAudioFilePath = null // Add property to store the current file path
 
     this.ensureTempDir()
     console.log('AudioRecorder initialized.')
@@ -74,28 +76,22 @@ export default class AudioRecorder {
     // TODO: Update tray icon (requires TrayManager reference or event emitter)
     // this.trayManager?.updateIcon('iconRecordingTemplate.png');
 
-    // Ensure temp directory exists and delete previous temp file
+    // Ensure temp directory exists
     this.ensureTempDir()
-    if (fs.existsSync(tempAudioFile)) {
-      try {
-        fs.unlinkSync(tempAudioFile)
-        console.log(
-          `AudioRecorder: Deleted previous temp audio file: ${tempAudioFile}`
-        )
-      } catch (err) {
-        console.error(
-          `AudioRecorder: Failed to delete previous temp audio file: ${err}`
-        )
-        // Decide if this is critical - maybe proceed anyway?
-      }
-    }
 
-    // Create a write stream for the temporary audio file
+    // Generate unique filename for this recording session
+    const uniqueFilename = `recording-${randomUUID()}.wav`
+    this.currentAudioFilePath = path.join(tempAudioDir, uniqueFilename)
+    console.log(
+      `AudioRecorder: Generated unique path: ${this.currentAudioFilePath}`
+    )
+
+    // Create a write stream for the unique temporary audio file
     try {
-      this.audioFileStream = fs.createWriteStream(tempAudioFile, {
+      this.audioFileStream = fs.createWriteStream(this.currentAudioFilePath, {
         encoding: 'binary',
       })
-      console.log(`AudioRecorder: Recording to: ${tempAudioFile}`)
+      console.log(`AudioRecorder: Recording to: ${this.currentAudioFilePath}`)
     } catch (err) {
       console.error(
         `AudioRecorder: Failed to create write stream for temp audio file: ${err}`
@@ -256,29 +252,34 @@ export default class AudioRecorder {
         'AudioRecorder: Setting up stream close handlers and ending stream...'
       )
       const streamInstance = this.audioFileStream
+      const filePathToTranscribe = this.currentAudioFilePath // Capture the path for this specific recording
       this.audioFileStream = null // Nullify the main variable immediately
+      this.currentAudioFilePath = null // Clear current path after capturing it
 
       streamInstance.on('finish', () => {
         console.log('AudioRecorder: Audio file stream finished writing.')
         // Check if the file actually exists and has size before transcribing
         try {
-          const stats = fs.statSync(tempAudioFile)
+          const stats = fs.statSync(filePathToTranscribe)
           if (stats.size > 0) {
             console.log(
-              `AudioRecorder: Temp file ${tempAudioFile} exists (${stats.size} bytes). Triggering transcription...`
+              `AudioRecorder: Temp file ${filePathToTranscribe} exists (${stats.size} bytes). Triggering transcription...`
             )
-            this.transcriptionService?.transcribeAudioFile(tempAudioFile) // Trigger transcription
+            // Pass the specific file path for this recording
+            this.transcriptionService?.transcribeAudioFile(filePathToTranscribe)
           } else {
             console.warn(
-              `AudioRecorder: Temp file ${tempAudioFile} is empty. Skipping transcription.`
+              `AudioRecorder: Temp file ${filePathToTranscribe} is empty. Skipping transcription.`
             )
-            this.cleanupTempFile() // Clean up empty file
+            // Attempt to clean up the empty file here directly, as TranscriptionService won't be called
+            this.cleanupSpecificFile(filePathToTranscribe)
           }
         } catch (statError) {
           console.warn(
-            `AudioRecorder: Could not stat temp file ${tempAudioFile} after stream finish. Skipping transcription. Error: ${statError.message}`
+            `AudioRecorder: Could not stat temp file ${filePathToTranscribe} after stream finish. Skipping transcription. Error: ${statError.message}`
           )
-          this.cleanupTempFile() // Clean up if stat fails
+          // Attempt cleanup if stat fails
+          this.cleanupSpecificFile(filePathToTranscribe)
         }
         // Send recording stopped state *before* closing window
         this.windowManager?.sendToTranscriptionWindow(
@@ -290,7 +291,8 @@ export default class AudioRecorder {
       })
       streamInstance.on('error', (err) => {
         console.error('AudioRecorder: Error writing audio file stream:', err)
-        this.cleanupTempFile() // Clean up temp file on stream error
+        // Attempt cleanup on stream error using the captured path
+        this.cleanupSpecificFile(filePathToTranscribe)
         // Send recording stopped state *before* closing window on error
         this.windowManager?.sendToTranscriptionWindow(
           'recording-state-change',
@@ -342,7 +344,8 @@ export default class AudioRecorder {
       this.audioFileStream = null
     }
 
-    this.cleanupTempFile()
+    // Don't call general cleanup here; specific file handled by TranscriptionService or locally on error/skip
+    // this.cleanupTempFile()
     // Notify user? Update UI?
     this.windowManager?.sendToTranscriptionWindow(
       'transcription-update',
@@ -358,18 +361,21 @@ export default class AudioRecorder {
     // TODO: Update tray icon back
   }
 
-  cleanupTempFile() {
-    if (fs.existsSync(tempAudioFile)) {
+  // New method to clean up a specific file path
+  cleanupSpecificFile(filePath) {
+    if (filePath && fs.existsSync(filePath)) {
       try {
-        fs.unlinkSync(tempAudioFile)
+        fs.unlinkSync(filePath)
         console.log(
-          `AudioRecorder: Deleted temporary audio file: ${tempAudioFile}`
+          `AudioRecorder: Deleted specific temporary audio file: ${filePath}`
         )
       } catch (unlinkErr) {
         console.error(
-          `AudioRecorder: Error deleting temp audio file: ${unlinkErr}`
+          `AudioRecorder: Error deleting specific temp audio file ${filePath}: ${unlinkErr}`
         )
       }
+    } else {
+      // console.log(`AudioRecorder: Specific temp file not found or path invalid: ${filePath}`);
     }
   }
 

@@ -2,7 +2,7 @@
 
 _This file documents what currently works, what is left to build, the overall status, and any known issues or bugs._
 
-## What Works (as of 2025-04-02 - Transcription Prompt Setting Added)
+## What Works (as of 2025-04-02 - Concurrent Transcription Handling Updated)
 
 - **Application Structure:** Refactored Electron app structure using manager classes (`src/core/`) and ES Modules in the main process.
 - **Settings UI:**
@@ -14,8 +14,8 @@ _This file documents what currently works, what is left to build, the overall st
   - Settings (API Key, Hotkey, Microphone, Language, **Transcription Prompt**, Usage Duration) are saved and loaded persistently using `electron-store` via `SettingsStore.js`.
   - IPC communication between renderer and main process is established for settings via `IpcHandler.js` and preload scripts.
   - Global hotkey registration (`HotkeyManager.js`) is implemented.
-  - Audio recording (`AudioRecorder.js` using `node-record-lpcm16`) is implemented.
-  - Transcription service (`TranscriptionService.js`) communicates with OpenAI API and uses the input language setting **and transcription prompt**.
+  - Audio recording (`AudioRecorder.js` using `node-record-lpcm16`) **now generates unique temporary filenames (`recording-*.wav`) for each session**.
+  - Transcription service (`TranscriptionService.js`) communicates with OpenAI API, uses language/prompt settings, **queues concurrent requests using unique file paths, and pastes combined results**.
   - Text pasting (`@nut-tree-fork/nut-js`) is implemented.
   - Transcription window display and updates (`WindowManager.js`, `TranscriptionRenderer.js`) are functional.
   - System tray (`TrayManager.js`) is functional.
@@ -27,8 +27,9 @@ _This file documents what currently works, what is left to build, the overall st
 ## What's Left to Build (Refinements & Testing)
 
 - **Testing:**
-  - Thorough testing of the new **transcription prompt** feature. Verify it's passed to the API and influences results as expected. Test with empty and non-empty prompts.
-  - Thorough testing of the input language feature across different languages and the "Auto-Detect" setting. Verify accuracy improvements where applicable. Test edge cases (e.g., invalid language code saved somehow).
+  - **Concurrent Transcription Handling:** Thoroughly test the queuing mechanism by initiating multiple recordings rapidly. Verify combined output, order, handling of failures, **and correct creation/deletion of unique temporary audio files (`recording-*.wav`)**.
+  - **Transcription Prompt:** Thorough testing of the transcription prompt feature. Verify it's passed to the API and influences results. Test with empty and non-empty prompts.
+  - **Input Language:** Thorough testing of the input language feature across different languages and "Auto-Detect". Verify accuracy and edge cases.
 - **Transcription Window Closure:** Consider adding a manual close button or mechanism to the transcription window (`transcription.html`) as it currently stays open.
 - **Error Handling:** Continue improving error handling and user feedback (e.g., clearer messages for API errors, SoX not found, paste failures).
 - **Microphone List:** Ensure dynamic population of the microphone list is robust.
@@ -37,9 +38,9 @@ _This file documents what currently works, what is left to build, the overall st
 
 ## Current Status
 
-- **Core Functionality Implemented:** The main workflow (hotkey -> record -> transcribe (with language and prompt options) -> paste) is functional. Settings are persistent. UI elements are connected. ES Module conversion complete.
-- **Refinement Needed:** Focus shifts to testing (prompt & language), improving user experience (like transcription window closure), enhancing error handling, and preparing for distribution.
-- **Documentation Updated:** Memory Bank reflects the current state including the new language and prompt features.
+- **Core Functionality Implemented:** The main workflow (hotkey -> record (unique file) -> transcribe (with language/prompt options, handling concurrency via queue) -> paste) is functional. Settings are persistent. UI elements are connected. ES Module conversion complete. Concurrent transcription handling (queuing + unique files) implemented.
+- **Refinement Needed:** Focus shifts to testing (concurrency, prompt, language), improving user experience (like transcription window closure), enhancing error handling, and preparing for distribution.
+- **Documentation Updated:** Memory Bank reflects the current state including the new language, prompt, and updated concurrency features.
 
 ## Known Issues/Bugs (as of 2025-04-02)
 

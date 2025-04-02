@@ -10,6 +10,8 @@ export default class TranscriptionService {
     this.windowManager = windowManager // To update transcription window
     this.settingsStore = settingsStore // Store the instance
     this.openai = null // OpenAI client instance, set via setOpenAIClient
+    this.activeRequests = 0 // Counter for ongoing transcription requests
+    this.transcriptionQueue = [] // Queue to hold results while waiting for others
     console.log('TranscriptionService initialized.')
   }
 
@@ -51,6 +53,12 @@ export default class TranscriptionService {
     this.windowManager?.sendToTranscriptionWindow(
       'transcription-update',
       'Transcribing...'
+    )
+
+    // Increment active requests counter
+    this.activeRequests++
+    console.log(
+      `TranscriptionService: Active requests incremented to ${this.activeRequests}`
     )
 
     try {
@@ -102,8 +110,14 @@ export default class TranscriptionService {
           resultText
         )
 
-        // Paste the text
-        await this.pasteText(resultText)
+        // Add the result to the queue instead of pasting immediately
+        this.transcriptionQueue.push(resultText)
+        console.log(
+          `TranscriptionService: Added result to queue. Queue size: ${this.transcriptionQueue.length}`
+        )
+
+        // Update transcription window with intermediate status? (Optional - keeping simple for now)
+        // this.windowManager?.sendToTranscriptionWindow('transcription-update', `Transcription ${this.transcriptionQueue.length}/${this.activeRequests} complete...`);
       } else {
         console.log(
           'TranscriptionService: Transcription result from OpenAI was empty or in unexpected format.'
@@ -145,6 +159,56 @@ export default class TranscriptionService {
     } finally {
       // Clean up the temporary audio file regardless of success/failure
       this.cleanupTempFile(filePath)
+
+      // Decrement active requests counter
+      this.activeRequests--
+      console.log(
+        `TranscriptionService: Active requests decremented to ${this.activeRequests}`
+      )
+
+      // Check if this was the last active request
+      if (this.activeRequests === 0 && this.transcriptionQueue.length > 0) {
+        console.log(
+          'TranscriptionService: All requests finished. Processing queue.'
+        )
+        const combinedText = this.transcriptionQueue.join(' ').trim() // Join results with space
+        this.transcriptionQueue = [] // Clear the queue
+
+        if (combinedText) {
+          console.log(
+            'TranscriptionService: Pasting combined text:',
+            combinedText
+          )
+          // Send final combined text to transcription window
+          this.windowManager?.sendToTranscriptionWindow(
+            'transcription-update',
+            combinedText
+          )
+          // Paste the combined text
+          await this.pasteText(combinedText)
+        } else {
+          console.log(
+            'TranscriptionService: Combined text is empty, nothing to paste.'
+          )
+          // Update window if needed (e.g., show "Transcription complete" or clear?)
+          // For now, it might still show the last error or "Transcribing..." if the last one failed.
+          // Let's explicitly clear it or set a final state if nothing was pasted.
+          this.windowManager?.sendToTranscriptionWindow(
+            'transcription-update',
+            'Transcription complete (no text).'
+          )
+        }
+      } else if (this.activeRequests === 0) {
+        // Handle case where the queue is empty (e.g., all requests failed)
+        console.log(
+          'TranscriptionService: All requests finished, but queue is empty (likely errors).'
+        )
+        // Update window to indicate completion without results
+        this.windowManager?.sendToTranscriptionWindow(
+          'transcription-update',
+          'Transcription finished (no results).'
+        )
+      }
       // Note: Window is kept open based on previous user request.
     }
   }
