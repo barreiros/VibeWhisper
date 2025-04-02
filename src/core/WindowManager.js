@@ -80,9 +80,10 @@ export default class WindowManager {
 
     console.log('WindowManager: Creating transcription window...')
     this.transcriptionWindow = new BrowserWindow({
-      width: 300,
-      height: 150,
+      width: 300, // Adjust size later if needed for just a button
+      height: 150, // Adjust size later if needed for just a button
       frame: false,
+      transparent: true, // <-- Add transparency
       alwaysOnTop: true,
       skipTaskbar: true,
       resizable: false,

@@ -6,10 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transcription</title>
     <link rel="stylesheet" href="../css/output.css">
+    <style>
+        /* Ensure body background is fully transparent */
+        body {
+            background-color: transparent !important;
+        }
+    </style>
 </head>
-<body class="bg-gray-900/80 text-white font-sans text-sm overflow-hidden rounded-lg flex flex-col items-center justify-center h-screen backdrop-blur-sm">
+<body class="font-sans text-sm overflow-hidden flex flex-col items-center justify-center h-screen"> <!-- Removed background, text color, blur, rounded -->
     <!-- Animated Mic Button -->
-    <div class="mb-3"> <!-- Added margin-bottom -->
+    <div class="mb-3"> <!-- Kept margin for spacing if needed, though likely irrelevant now -->
         <div id="mic-indicator" class="circle w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg transition-all duration-500 relative">
             <!-- Pulsing background element -->
             <div class="pulse absolute inset-0 w-16 h-16 rounded-full bg-gray-400 opacity-0 scale-100"></div>
@@ -20,10 +26,12 @@
         </div>
     </div>
 
-    <!-- Transcription Text -->
+    <!-- Transcription Text Removed -->
+    <!--
     <div id="transcription-output" class="whitespace-pre-wrap break-words text-center max-w-xs">
         Listening...
     </div>
+    -->
 
     <script src="../core/TranscriptionRenderer.js"></script>
 </body>
