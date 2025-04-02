@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron'
+import { BrowserWindow, screen } from 'electron' // Import screen module
 import path, { dirname } from 'path' // Import dirname
 import { fileURLToPath } from 'url' // Needed for __dirname equivalent
 
@@ -117,10 +117,22 @@ export default class WindowManager {
 
     // Show after a short delay to allow loading, without activating/focusing
     this.transcriptionWindow.once('ready-to-show', () => {
+      console.log('WindowManager: Transcription window ready to show.')
+      // Calculate position for bottom-right corner
+      const primaryDisplay = screen.getPrimaryDisplay()
+      const { width: screenWidth, height: screenHeight } =
+        primaryDisplay.workAreaSize // Use workAreaSize to avoid taskbars etc.
+      const [windowWidth, windowHeight] = this.transcriptionWindow.getSize()
+
+      const x = screenWidth - windowWidth
+      const y = screenHeight - windowHeight
+
       console.log(
-        'WindowManager: Transcription window ready to show (inactive).'
+        `WindowManager: Setting transcription window position to x: ${x}, y: ${y}`
       )
-      this.transcriptionWindow.showInactive() // Show without taking focus
+      this.transcriptionWindow.setPosition(x, y, false) // Set position without animation
+
+      this.transcriptionWindow.showInactive() // Show without taking focus after positioning
       // Initial message sending will be handled by the calling logic (e.g., AudioRecorder)
     })
 

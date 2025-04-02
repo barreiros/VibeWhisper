@@ -28,7 +28,7 @@ export default class CubeVisualizer {
       0.1,
       1000
     )
-    this.camera.position.z = 2 // Move camera back slightly
+    this.camera.position.z = 5 // Move camera further back to see the larger cube
 
     // --- Renderer Setup ---
     this.renderer = new THREE.WebGLRenderer({
@@ -49,10 +49,16 @@ export default class CubeVisualizer {
     this.scene.add(directionalLight)
 
     // --- Cube Geometry and Material ---
-    const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5) // Smaller cube
+    this.cubeSize = 2 // Make cube 4x bigger (0.5 * 4 = 2)
+    const geometry = new THREE.BoxGeometry(
+      this.cubeSize,
+      this.cubeSize,
+      this.cubeSize
+    )
     const material = new THREE.MeshStandardMaterial({ color: 0xaaaaaa }) // Grey color
     this.cube = new THREE.Mesh(geometry, material)
     this.scene.add(this.cube)
+    // Cube will be centered at (0,0,0) by default
 
     // --- Event Listeners ---
     // Use arrow function to maintain 'this' context
@@ -80,8 +86,11 @@ export default class CubeVisualizer {
       this.camera.aspect = window.innerWidth / window.innerHeight
       this.camera.updateProjectionMatrix()
       this.renderer.setSize(window.innerWidth, window.innerHeight)
+      // No longer need to update cube position on resize, it stays centered
     }
   }
+
+  // Removed updateCubePosition method
 
   // Optional method to change cube color based on state
   setRecordingState(isRecording) {

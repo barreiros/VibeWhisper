@@ -17,7 +17,7 @@ _This file documents what currently works, what is left to build, the overall st
   - Audio recording (`AudioRecorder.js` using `node-record-lpcm16`) **now generates unique temporary filenames (`recording-*.wav`) for each session**.
   - Transcription service (`TranscriptionService.js`) communicates with OpenAI API, uses language/prompt settings, **queues concurrent requests using unique file paths, and pastes combined results**.
   - Text pasting (`@nut-tree-fork/nut-js`) is implemented.
-  - Transcription window display (`WindowManager.js`, `TranscriptionRenderer.js`, `transcription.html`) is functional. **The window now displays a rotating 3D cube (using Three.js, imported dynamically within `CubeVisualizer.js`) on a transparent background instead of a static icon (3D logic moved to `CubeVisualizer` class in `src/core/CubeVisualizer.js`).** **The window appears without stealing focus (`showInactive()`) and without a native shadow (`hasShadow: false`)**.
+  - Transcription window display (`WindowManager.js`, `TranscriptionRenderer.js`, `transcription.html`) is functional. **The window is positioned in the bottom-right of the screen and displays a larger (4x), centered, rotating 3D cube (using Three.js, imported dynamically within `CubeVisualizer.js`) on a transparent background (no shadow).** **The window appears without stealing focus (`showInactive()`)**.
   - System tray (`TrayManager.js`) is functional (provides Settings/Quit).
   - Application menu (`AppManager.js`) template is created but **no longer set** (standard menu bar removed). Access is via tray only. Dock icon remains visible on macOS.
   - Settings window (`WindowManager.js`) now starts hidden (`show: false`) and only appears when requested via tray.
@@ -25,7 +25,7 @@ _This file documents what currently works, what is left to build, the overall st
 - **Installation:** `package.json` defines dependencies. `install.sh` might automate some setup.
 - **Memory Bank:** Core documentation files are initialized and updated.
 
-## What's Left to Build (Refinements & Testing)
+ok bye## What's Left to Build (Refinements & Testing)
 
 - **Testing:**
   - **Concurrent Transcription Handling:** Thoroughly test the queuing mechanism by initiating multiple recordings rapidly. Verify combined output, order, handling of failures, **and correct creation/deletion of unique temporary audio files (`recording-*.wav`)**.
@@ -41,9 +41,9 @@ _This file documents what currently works, what is left to build, the overall st
 
 ## Current Status
 
-- **Core Functionality Implemented:** The main workflow (hotkey -> record (unique file) -> transcribe (with language/prompt options, handling concurrency via queue) -> paste) is functional. Settings are persistent. UI elements are connected. ES Module conversion complete. Concurrent transcription handling (queuing + unique files) implemented. **Transcription window now displays a 3D cube visual (logic moved to `CubeVisualizer` class/file, using dynamic Three.js import), is fully transparent (no shadow), and doesn't steal focus.** **Standard application menu bar removed; access is now via system tray icon. Dock icon remains visible on macOS.** **Settings window starts hidden.**
-- **Refinement Needed:** Focus shifts to testing (concurrency, prompt, language, **window focus**, **3D visual (refactored, dynamic import, no shadow)**, **tray functionality**, **hidden settings window start**), improving user experience (like transcription window closure), enhancing error handling, and preparing for distribution.
-- **Documentation Updated:** Memory Bank reflects the current state including the new language, prompt, updated concurrency features, **3D visual implementation (refactored, dynamic import, no shadow)**, **transcription window focus change, menu bar removal, Dock icon visibility, and hidden settings window start**.
+- **Core Functionality Implemented:** The main workflow (hotkey -> record (unique file) -> transcribe (with language/prompt options, handling concurrency via queue) -> paste) is functional. Settings are persistent. UI elements are connected. ES Module conversion complete. Concurrent transcription handling (queuing + unique files) implemented. **Transcription window is positioned bottom-right on screen, displays a larger centered 3D cube visual (logic moved to `CubeVisualizer` class/file, using dynamic Three.js import), is fully transparent (no shadow), and doesn't steal focus.** **Standard application menu bar removed; access is now via system tray icon. Dock icon remains visible on macOS.** **Settings window starts hidden.**
+- **Refinement Needed:** Focus shifts to testing (concurrency, prompt, language, **window focus/positioning**, **3D visual (larger, centered, refactored, dynamic import, no shadow)**, **tray functionality**, **hidden settings window start**), improving user experience (like transcription window closure), enhancing error handling, and preparing for distribution.
+- **Documentation Updated:** Memory Bank reflects the current state including the new language, prompt, updated concurrency features, **3D visual implementation (larger, centered, refactored, dynamic import, no shadow)**, **transcription window positioning (bottom-right screen), focus change, menu bar removal, Dock icon visibility, and hidden settings window start**.
 
 ## Known Issues/Bugs (as of 2025-04-02 - 3D Visual)
 

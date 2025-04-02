@@ -1,4 +1,4 @@
-the the the the the the the the the the the the the th the tough .# Active Context: Barreiros_SuperWhisper
+# Active Context: Barreiros_SuperWhisper
 
 _This file tracks the current work focus, recent changes, immediate next steps, and active decisions or considerations. It bridges the gap between the broader context files and the day-to-day progress._
 
@@ -61,6 +61,11 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
   - Modified `src/core/WindowManager.js` (`createTranscriptionWindow`, `showTranscriptionWindow`) to use `showInactive()` instead of `show()` and removed `focus()` calls. This prevents the transcription window from taking focus when it appears.
 - **Improve Transcription Window Transparency (2025-04-02):**
   - Added `hasShadow: false` to the `BrowserWindow` options in `src/core/WindowManager.js` for the transcription window to remove the native OS shadow, further enhancing transparency.
+- **Adjust Cube Visuals (2025-04-02):**
+  - Modified `src/core/CubeVisualizer.js` to increase the cube size (4x) and move the camera back (z=5) to prevent clipping. Removed dynamic positioning within the window; cube is now centered at (0,0,0).
+- **Position Transcription Window (2025-04-02):**
+  - Modified `src/core/WindowManager.js` to use the `screen` module to calculate the coordinates for the bottom-right corner of the primary display's work area.
+  - Set the transcription window's position using `setPosition()` before showing it.
 - **Refactored Main Process (Prior - 2025-04-01):**
   - Created manager classes: `AppManager`, `WindowManager`, `SettingsStore`, `TrayManager`, `HotkeyManager`, `IpcHandler`, `AudioRecorder`, `TranscriptionService` in `src/core/` (corrected path).
   - Created new entry point `src/main/index.js`.
@@ -110,5 +115,3 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 - **Transcription Window Focus:** The transcription window is now configured to appear without stealing focus from the active application (`showInactive()`).
 - **Removed Standard Menu Bar (2025-04-02):** Commented out `Menu.setApplicationMenu(menu)` in `src/core/AppManager.js` to remove the standard File/Edit/View etc. menu bar. Access to Settings and Quit is now solely through the system tray icon managed by `TrayManager.js`. The Dock icon remains visible on macOS.
 - **Prevent Settings Window Auto-Show (2025-04-02):** Modified `src/core/WindowManager.js` to set `show: false` in the `BrowserWindow` options for the settings window, preventing it from opening automatically on application start. It now only opens when requested via the tray menu.
-
-_This file should be updated frequently, ideally after each significant work session or change in focus._
