@@ -10,6 +10,28 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 
 ## Recent Changes
 
+- **Revert Opacity Damping Factor (Match Scale) (2025-04-02):**
+
+  - Modified `src/core/CubeVisualizer.js`: Changed `opacitySmoothingFactor` from `0.05` back to `0.1` to match `scaleSmoothingFactor`.
+
+- **Adjust Damping Factors (Separate Opacity/Scale) (2025-04-02):**
+
+  - Modified `src/core/CubeVisualizer.js`:
+    - Introduced separate `opacitySmoothingFactor` (0.05, slower) and `scaleSmoothingFactor` (0.1, faster).
+    - Applied respective factors in the damping calculation within the `animate` loop.
+
+- **Implement Damped Cube Smoothing (User Suggestion) (2025-04-02):**
+
+  - Modified `src/core/CubeVisualizer.js`:
+    - Replaced asymmetric lerp with a single `smoothingFactor` (0.1).
+    - Updated `animate` loop to use the damping formula `current += (target - current) * smoothingFactor` for both `currentOpacity` and `currentScale`.
+
+- **Implement Asymmetric Cube Smoothing (Attack/Decay) (2025-04-02):**
+
+  - Modified `src/core/CubeVisualizer.js`:
+    - Introduced `lerpFactorUp` (0.6) and `lerpFactorDown` (0.05).
+    - Updated `animate` loop to use `lerpFactorUp` when `targetOpacity`/`targetScale` is greater than `currentOpacity`/`currentScale`, and `lerpFactorDown` otherwise. This creates a fast attack and slow decay effect.
+
 - **Adjust Cube Smoothing (Slower/Progressive) (2025-04-02):**
 
   - Modified `src/core/CubeVisualizer.js`: Reduced `lerpFactor` from `0.3` back to `0.1` for slower, more progressive opacity and scale transitions, dampening abrupt volume changes.
@@ -144,7 +166,7 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 5.  **Test 3D Cube Volume Reactivity:** Run the application (`npm run dev` or `npm start`) and verify:
     - The transcription window displays a rotating grey cube.
     - The cube's **opacity changes** based on microphone input volume (louder = more opaque).
-    - Check for visual glitches, performance impact (CPU/GPU usage), and appropriate **opacity and scale** range and **slower, more progressive smoothness**.
+    - Check for visual glitches, performance impact (CPU/GPU usage), and appropriate **opacity and scale** range and the **consistent damped smoothness** (`smoothingFactor`=0.1 for both).
     - Verify the cube color remains red.
 6.  **Update Memory Bank:** Update `progress.md`, `techContext.md`, and `systemPatterns.md`. (Updating now)
 7.  **Await User Feedback/Next Task:** After documentation and testing, await further instructions.
@@ -162,6 +184,6 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 - **Transcription Prompt Setting:** Added. Allows users to provide contextual prompts to the OpenAI Whisper API via the `prompt` parameter.
 - **Concurrent Transcription Handling:** Implemented queuing mechanism in `TranscriptionService.js` and unique temporary file generation in `AudioRecorder.js` to handle overlapping requests correctly. Results are stored and combined before pasting.
 - **Transcription Window Focus:** The transcription window is now configured to appear without stealing focus from the active application (`showInactive()`).
-- **3D Cube Volume Reactivity:** Implemented and refined. The **red** cube's **opacity AND scale** now change **more slowly and progressively (smoothed with lerpFactor=0.1)** based on microphone input volume calculated in `AudioRecorder.js` and sent via IPC (`audio-volume-update`) to `CubeVisualizer.js`.
+- **3D Cube Volume Reactivity:** Implemented and refined. The **red** cube's **opacity AND scale** now change with **consistent damped smoothing (smoothingFactor=0.1 for both)** based on microphone input volume calculated in `AudioRecorder.js` and sent via IPC (`audio-volume-update`) to `CubeVisualizer.js`.
 - **Removed Standard Menu Bar (2025-04-02):** Commented out `Menu.setApplicationMenu(menu)` in `src/core/AppManager.js` to remove the standard File/Edit/View etc. menu bar. Access to Settings and Quit is now solely through the system tray icon managed by `TrayManager.js`. The Dock icon remains visible on macOS.
 - **Prevent Settings Window Auto-Show (2025-04-02):** Modified `src/core/WindowManager.js` to set `show: false` in the `BrowserWindow` options for the settings window, preventing it from opening automatically on application start. It now only opens when requested via the tray menu.

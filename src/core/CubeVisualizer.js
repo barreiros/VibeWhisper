@@ -16,7 +16,8 @@ export default class CubeVisualizer {
     this.currentOpacity = 0.1 // Current smoothed opacity
     this.targetScale = 1.0 // Target scale based on volume
     this.currentScale = 1.0 // Current smoothed scale
-    this.lerpFactor = 0.1 // Smoothing factor (REDUCED for smoother, more progressive change)
+    this.opacitySmoothingFactor = 0.1 // Revert to match scale damping
+    this.scaleSmoothingFactor = 0.1 // Keep scale damping as is
 
     this.init()
     this.animate() // Start animation loop
@@ -86,20 +87,15 @@ export default class CubeVisualizer {
       this.cube.rotation.x += 0.01
       this.cube.rotation.y += 0.01
 
-      // Smoothly interpolate current opacity towards target opacity
-      this.currentOpacity = THREE.MathUtils.lerp(
-        this.currentOpacity,
-        this.targetOpacity,
-        this.lerpFactor
-      )
+      // --- Damping Logic (User Suggestion with separate factors) ---
+      // Opacity (More damping)
+      this.currentOpacity +=
+        (this.targetOpacity - this.currentOpacity) * this.opacitySmoothingFactor
       this.cube.material.opacity = this.currentOpacity
 
-      // Smoothly interpolate current scale towards target scale
-      this.currentScale = THREE.MathUtils.lerp(
-        this.currentScale,
-        this.targetScale,
-        this.lerpFactor
-      )
+      // Scale (Less damping)
+      this.currentScale +=
+        (this.targetScale - this.currentScale) * this.scaleSmoothingFactor
       this.cube.scale.set(
         this.currentScale,
         this.currentScale,
