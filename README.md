@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/iconTemplate@2x.png" alt="VibeWhisper Icon" width="128"/>
+  <img src="assets/app_icon.png" alt="VibeWhisper Icon" width="128"/>
 </p>
 
 # VibeWhisper
