@@ -38,7 +38,8 @@
     "dotenv": "^16.4.7",
     "electron-store": "^10.0.1",
     "node-record-lpcm16": "^1.0.1",
-    "openai": "^4.91.0"
+    "openai": "^4.91.0",
+    "play-sound": "^1.1.6"
   },
   "build": {
     "appId": "com.barreiros.superwhisper",

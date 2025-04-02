@@ -1,14 +1,49 @@
-import { app } from 'electron'
+import { app } from 'electron' // Removed shell import
 import path from 'path'
 import fs from 'fs'
 import { randomUUID } from 'crypto' // Import for generating unique IDs
 import record from 'node-record-lpcm16' // Assuming default export works for ESM
+import PlaySound from 'play-sound' // Import play-sound
+
 // SettingsStore instance is now passed in constructor
 
 // Use app's temp directory for temporary audio storage
 const tempBaseDir = app.getPath('temp')
 const tempAudioDir = path.join(tempBaseDir, 'barreiros-superwhisper-audio') // App-specific subfolder
 // No longer using a single fixed tempAudioFile constant
+
+// --- Sound Player Setup ---
+// Resolve paths relative to the app's root directory
+// This helps ensure it works both in development and after packaging
+const soundBasePath = app.isPackaged
+  ? path.join(process.resourcesPath, 'app.asar', 'assets', 'sounds') // Adjust if not using asar or structure differs
+  : path.join(app.getAppPath(), 'assets', 'sounds')
+
+const startSoundPath = path.join(soundBasePath, 'start.wav')
+const stopSoundPath = path.join(soundBasePath, 'stop.wav')
+
+// Check if sound files exist (optional, but good for debugging)
+if (!fs.existsSync(startSoundPath)) {
+  console.warn(`AudioRecorder: Start sound file not found at ${startSoundPath}`)
+}
+if (!fs.existsSync(stopSoundPath)) {
+  console.warn(`AudioRecorder: Stop sound file not found at ${stopSoundPath}`)
+}
+
+// Configure player options for volume control (macOS example)
+const playerOpts = {}
+if (process.platform === 'darwin') {
+  playerOpts.afplay = ['-v', 0.5] // Set volume to 50% for afplay on macOS
+  console.log('AudioRecorder: Configured afplay volume to 0.5')
+} else {
+  // TODO: Add volume options for other platforms (e.g., aplay, paplay, mplayer) if needed
+  console.log(
+    'AudioRecorder: Volume control options not configured for this platform.'
+  )
+}
+
+const player = PlaySound(playerOpts) // Initialize player with options
+// --- End Sound Player Setup ---
 
 export default class AudioRecorder {
   // Use export default
@@ -59,6 +94,10 @@ export default class AudioRecorder {
       return
     }
     console.log('AudioRecorder: Starting recording...')
+    // Play start sound
+    player.play(startSoundPath, (err) => {
+      if (err) console.error('AudioRecorder: Error playing start sound:', err)
+    })
     this.recordingStartTime = Date.now() // Record start time
 
     // Show the transcription window and send initial state/text
@@ -184,7 +223,12 @@ export default class AudioRecorder {
           maxDurationMs / 1000
         }s) reached. Stopping automatically.`
       )
-      this.stopRecordingAndTranscribe()
+      // Play stop sound as the time limit warning
+      player.play(stopSoundPath, (err) => {
+        if (err)
+          console.error('AudioRecorder: Error playing time limit sound:', err)
+      })
+      this.stopRecordingAndTranscribe() // Then stop normally
     }, maxDurationMs)
   }
 
@@ -195,6 +239,10 @@ export default class AudioRecorder {
     }
 
     console.log('AudioRecorder: Stopping recording...')
+    // Play stop sound (manual or timer)
+    player.play(stopSoundPath, (err) => {
+      if (err) console.error('AudioRecorder: Error playing stop sound:', err)
+    })
     const wasRecording = this.isRecording // Store state before changing
     this.isRecording = false // Set state immediately
 
