@@ -42,7 +42,7 @@ export default class WindowManager {
     ) // Updated path to settings.html
 
     // Open the DevTools (optional, for debugging)
-    // this.settingsWindow.webContents.openDevTools();
+    this.settingsWindow.webContents.openDevTools() // <-- Uncommented
 
     this.settingsWindow.on('closed', () => {
       console.log('WindowManager: Settings window closed.')
@@ -104,6 +104,9 @@ export default class WindowManager {
     this.transcriptionWindow.loadFile(
       path.join(__dirname, '..', 'window', 'transcription.html')
     ) // Updated path
+
+    // Open the DevTools for the transcription window
+    this.transcriptionWindow.webContents.openDevTools({ mode: 'detach' }) // <-- Added, detach to avoid overlapping small window
 
     this.transcriptionWindow.on('closed', () => {
       console.log('WindowManager: Transcription window closed.')
