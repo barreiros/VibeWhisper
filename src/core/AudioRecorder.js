@@ -1,41 +1,9 @@
-import { app } from 'electron'
-import path from 'path'
-import fs from 'fs' // Keep fs for checking sound file existence for now
-import PlaySound from 'play-sound'
+// Removed app, path, fs, PlaySound imports related to sound playback
 
 // SettingsStore instance is now passed in constructor
-// Removed imports for node-record-lpcm16, crypto, path (for temp files)
 
 // --- Sound Player Setup ---
-// Resolve paths relative to the app's root directory
-const soundBasePath = app.isPackaged
-  ? path.join(process.resourcesPath, 'assets', 'sounds') // Path when packaged (no app.asar assumed here for simplicity, adjust if needed)
-  : path.join(app.getAppPath(), 'assets', 'sounds')
-
-const startSoundPath = path.join(soundBasePath, 'start.wav')
-const stopSoundPath = path.join(soundBasePath, 'stop.wav')
-
-// Check if sound files exist (optional, but good for debugging)
-if (!fs.existsSync(startSoundPath)) {
-  console.warn(`AudioRecorder: Start sound file not found at ${startSoundPath}`)
-}
-if (!fs.existsSync(stopSoundPath)) {
-  console.warn(`AudioRecorder: Stop sound file not found at ${stopSoundPath}`)
-}
-
-// Configure player options for volume control (macOS example)
-const playerOpts = {}
-if (process.platform === 'darwin') {
-  playerOpts.afplay = ['-v', 0.5] // Set volume to 50% for afplay on macOS
-  console.log('AudioRecorder: Configured afplay volume to 0.5')
-} else {
-  // TODO: Add volume options for other platforms (e.g., aplay, paplay, mplayer) if needed
-  console.log(
-    'AudioRecorder: Volume control options not configured for this platform.'
-  )
-}
-
-const player = PlaySound(playerOpts) // Initialize player with options
+// Sound playback is now handled by the dedicated sound window via IPC
 // --- End Sound Player Setup ---
 
 export default class AudioRecorder {
@@ -69,10 +37,8 @@ export default class AudioRecorder {
       return
     }
     console.log('AudioRecorder: Starting recording...')
-    // Play start sound
-    player.play(startSoundPath, (err) => {
-      if (err) console.error('AudioRecorder: Error playing start sound:', err)
-    })
+    // Play start sound via sound window
+    this.windowManager?.sendToSoundWindow('play-sound', 'start')
     this.recordingStartTime = Date.now() // Record start time
 
     // Show the transcription window and send initial state/text
@@ -108,11 +74,8 @@ export default class AudioRecorder {
           maxDurationMs / 1000
         }s) reached. Stopping automatically.`
       )
-      // Play stop sound as the time limit warning
-      player.play(stopSoundPath, (err) => {
-        if (err)
-          console.error('AudioRecorder: Error playing time limit sound:', err)
-      })
+      // Play stop sound as the time limit warning via sound window
+      this.windowManager?.sendToSoundWindow('play-sound', 'stop')
       this.stopRecordingAndTranscribe() // Then stop normally
     }, maxDurationMs)
   }
@@ -124,10 +87,8 @@ export default class AudioRecorder {
     }
 
     console.log('AudioRecorder: Stopping recording...')
-    // Play stop sound (manual or timer)
-    player.play(stopSoundPath, (err) => {
-      if (err) console.error('AudioRecorder: Error playing stop sound:', err)
-    })
+    // Play stop sound (manual or timer) via sound window
+    this.windowManager?.sendToSoundWindow('play-sound', 'stop')
     const wasRecording = this.isRecording // Store state before changing
     this.isRecording = false // Set state immediately
 

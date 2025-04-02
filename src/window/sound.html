@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Sound Player</title>
+</head>
+<body>
+    <!-- Audio elements for start and stop sounds -->
+    <!-- Note: Paths are relative to this HTML file's location *after* packaging -->
+    <audio id="start-sound" src="../../assets/sounds/start.wav" preload="auto"></audio>
+    <audio id="stop-sound" src="../../assets/sounds/stop.wav" preload="auto"></audio>
+
+    <script>
+        // Listen for IPC messages from the main process via the preload script
+        window.electronAPI?.onPlaySound((soundName) => {
+            console.log(`SoundWindow: Received request to play: ${soundName}`);
+            let soundElement;
+            if (soundName === 'start') {
+                soundElement = document.getElementById('start-sound');
+            } else if (soundName === 'stop') {
+                soundElement = document.getElementById('stop-sound');
+            }
+
+            if (soundElement) {
+                // Ensure playback starts from the beginning if already playing
+                soundElement.currentTime = 0;
+                soundElement.play().catch(error => {
+                    console.error(`SoundWindow: Error playing sound '${soundName}':`, error);
+                });
+            } else {
+                console.warn(`SoundWindow: Sound element not found for '${soundName}'`);
+            }
+        });
+        console.log('SoundWindow: Ready to play sounds.');
+    </script>
+</body>
+</html>

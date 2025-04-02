@@ -14,7 +14,9 @@ export default class WindowManager {
     this.settingsWindow = null
     this.transcriptionWindow = null
     this.backgroundWindow = null // Add reference for the background window
+    this.soundWindow = null // Add reference for the sound window
     console.log('WindowManager initialized.')
+    this.createSoundWindow() // Create sound window on init
   }
 
   // --- Background Window for Web Audio API ---
@@ -51,6 +53,43 @@ export default class WindowManager {
     return this.backgroundWindow
   }
   // --- End Background Window ---
+
+  // --- Sound Window ---
+  createSoundWindow() {
+    if (this.soundWindow && !this.soundWindow.isDestroyed()) {
+      console.log('WindowManager: Sound window already exists.')
+      return this.soundWindow
+    }
+
+    console.log('WindowManager: Creating sound window...')
+    this.soundWindow = new BrowserWindow({
+      show: false, // Keep it hidden
+      webPreferences: {
+        preload: path.join(__dirname, '..', 'preload', 'soundPreload.js'), // Use sound preload script
+        nodeIntegration: false,
+        contextIsolation: true,
+        // Enable background throttling false if needed, but usually not necessary for simple audio playback
+        // backgroundThrottling: false,
+      },
+    })
+
+    // Load the sound playback HTML file
+    this.soundWindow.loadFile(
+      path.join(__dirname, '..', 'window', 'sound.html')
+    )
+
+    // Optional: Open DevTools for debugging the sound process
+    // this.soundWindow.webContents.openDevTools({ mode: 'detach' });
+
+    this.soundWindow.on('closed', () => {
+      console.log('WindowManager: Sound window closed.')
+      this.soundWindow = null
+    })
+
+    console.log('WindowManager: Sound window created.')
+    return this.soundWindow
+  }
+  // --- End Sound Window ---
 
   createSettingsWindow() {
     if (this.settingsWindow && !this.settingsWindow.isDestroyed()) {
@@ -244,6 +283,10 @@ export default class WindowManager {
 
   sendToBackgroundWindow(channel, ...args) {
     this.sendToWindow(this.backgroundWindow, channel, ...args)
+  }
+
+  sendToSoundWindow(channel, ...args) {
+    this.sendToWindow(this.soundWindow, channel, ...args)
   }
 
   // Send log messages to the settings window
