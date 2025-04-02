@@ -127,6 +127,20 @@ export default class IpcHandler {
       }
     })
 
+    // Handle request from renderer to set the transcription prompt
+    ipcMain.handle('set-transcription-prompt', async (event, prompt) => {
+      console.log(`IPC: Received set-transcription-prompt request: "${prompt}"`)
+      try {
+        // Use the passed instance
+        this.settingsStore.set('transcriptionPrompt', prompt)
+        console.log(`IPC: Transcription prompt saved: "${prompt}"`)
+        return { success: true }
+      } catch (error) {
+        console.error('IPC: Error saving transcription prompt:', error)
+        return { success: false, error: error.message }
+      }
+    })
+
     // Handle manual start/stop requests from renderer (delegated to AudioRecorder)
     ipcMain.on('start-recording', () => {
       console.log('IPC: Received start-recording request from renderer.')

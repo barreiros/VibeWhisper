@@ -2,9 +2,9 @@
 
 _This file tracks the current work focus, recent changes, immediate next steps, and active decisions or considerations. It bridges the gap between the broader context files and the day-to-day progress._
 
-## Current Focus (2025-04-02 - Add Input Language Setting)
+## Current Focus (2025-04-02 - Add Transcription Prompt Setting)
 
-- **Add Input Language Setting:** Implementing UI and logic to allow users to specify the input language for OpenAI transcription.
+- **Add Transcription Prompt Setting:** Implementing UI and logic to allow users to provide contextual prompts/instructions to the OpenAI transcription API.
 
 ## Recent Changes
 
@@ -22,8 +22,15 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
   - Updated `src/core/IpcHandler.js` to handle `set-language` IPC calls and save to `SettingsStore`.
   - Updated `src/core/SettingsStore.js` to include `language` in defaults and `getAll`.
   - Updated `src/core/TranscriptionService.js` to retrieve language setting and pass it to the OpenAI API call.
+- **Add Transcription Prompt Setting (2025-04-02):**
+  - Added prompt `textarea` and save button to `src/window/settings.html`.
+  - Updated `src/core/Renderer.js` to load/save prompt setting via IPC.
+  - Updated `src/preload/settingsPreload.js` to expose `setTranscriptionPrompt` IPC channel and helper.
+  - Updated `src/core/IpcHandler.js` to handle `set-transcription-prompt` IPC calls and save to `SettingsStore`.
+  - Updated `src/core/SettingsStore.js` to include `transcriptionPrompt` in defaults and `getAll`.
+  - Updated `src/core/TranscriptionService.js` to retrieve prompt setting and pass it to the OpenAI API call if present.
 - **Refactored Main Process (Prior - 2025-04-01):**
-  - Created manager classes: `AppManager`, `WindowManager`, `SettingsStore`, `TrayManager`, `HotkeyManager`, `IpcHandler`, `AudioRecorder`, `TranscriptionService` in `src/main/`.
+  - Created manager classes: `AppManager`, `WindowManager`, `SettingsStore`, `TrayManager`, `HotkeyManager`, `IpcHandler`, `AudioRecorder`, `TranscriptionService` in `src/core/` (corrected path).
   - Created new entry point `src/main/index.js`.
   - Updated `main.js` to be a stub loader.
   - Created separate preload scripts: `src/preload/settingsPreload.js` and `src/preload/transcriptionPreload.js`.
@@ -42,13 +49,13 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 
 ## Immediate Next Steps
 
-1.  **Test Input Language Setting:** Run the application (`npm run dev` or `npm start`) and verify:
-    - The language dropdown appears in the Settings window.
-    - The previously selected language (or "Auto-Detect") is loaded correctly.
-    - Changing the language selection saves the setting (check console logs or subsequent loads).
-    - Transcription requests correctly use the selected language (check `TranscriptionService` logs for `Using language setting: ...`). Test with "Auto-Detect" and a specific language.
-2.  **Update Memory Bank:** Update `progress.md` and `.clinerules`.
-3.  **Await User Feedback/Next Task:** After testing and documentation, await further instructions.
+1.  **Test Transcription Prompt Setting:** Run the application (`npm run dev` or `npm start`) and verify:
+    - The prompt textarea appears in the Settings window.
+    - The previously saved prompt (or empty) is loaded correctly.
+    - Entering text and clicking "Save Prompt" saves the setting (check console logs or subsequent loads).
+    - Transcription requests correctly use the saved prompt (check `TranscriptionService` logs for `Using prompt: ...`). Test with and without a prompt.
+2.  **Update Memory Bank:** Update `progress.md` and `.clinerules`. (This step)
+3.  **Await User Feedback/Next Task:** After documentation, await further instructions.
 
 ## Active Decisions/Considerations
 
@@ -60,5 +67,6 @@ _This file tracks the current work focus, recent changes, immediate next steps, 
 - **Error Handling/User Feedback:** Refactoring provides better structure, but detailed error handling (e.g., SoX not found, API key invalid, paste failed) and clear user feedback in the UI (Settings/Transcription windows) needs ongoing review and improvement.
 - **Renderer Updates:** Renderer scripts (`Renderer.js`, `TranscriptionRenderer.js`) were checked and did not require changes for the ES Module conversion itself, as they rely on the preload bridge.
 - **Input Language Setting:** Added. Allows users to specify the input language for potentially better accuracy with OpenAI Whisper. Defaults to auto-detect.
+- **Transcription Prompt Setting:** Added. Allows users to provide contextual prompts to the OpenAI Whisper API via the `prompt` parameter.
 
 _This file should be updated frequently, ideally after each significant work session or change in focus._

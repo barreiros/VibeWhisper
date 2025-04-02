@@ -54,13 +54,17 @@ export default class TranscriptionService {
     )
 
     try {
-      // Get the language setting
+      // Get the language and prompt settings
       const languageCode = this.settingsStore.get('language') // Get from store
+      const promptText = this.settingsStore.get('transcriptionPrompt') // Get prompt from store
       console.log(
         `TranscriptionService: Using language setting: '${
           languageCode || 'Auto-Detect'
         }'`
       )
+      if (promptText) {
+        console.log(`TranscriptionService: Using prompt: "${promptText}"`)
+      }
 
       // Prepare options for the API call
       const transcriptionOptions = {
@@ -72,6 +76,10 @@ export default class TranscriptionService {
       // Add language only if it's set (not empty string)
       if (languageCode) {
         transcriptionOptions.language = languageCode
+      }
+      // Add prompt only if it's set (not empty string)
+      if (promptText) {
+        transcriptionOptions.prompt = promptText
       }
 
       const transcription = await this.openai.audio.transcriptions.create(

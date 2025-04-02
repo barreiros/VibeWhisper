@@ -20,6 +20,7 @@ class SettingsStore {
           hotkey: 'CommandOrControl+Shift+Space',
           microphone: 'default',
           language: '', // Added language setting, default to Auto-Detect
+          transcriptionPrompt: '', // Added transcription prompt setting
           totalDurationSeconds: 0,
         },
       })
@@ -59,6 +60,7 @@ class SettingsStore {
       hotkey: this.get('hotkey'),
       microphone: this.get('microphone'),
       language: this.get('language'), // Added language to getAll
+      transcriptionPrompt: this.get('transcriptionPrompt'), // Added prompt to getAll
       totalDurationSeconds: this.get('totalDurationSeconds'),
     }
   }

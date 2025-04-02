@@ -16,6 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Usage Stats elements
   const totalDurationSpan = document.getElementById('total-duration')
   const estimatedCostSpan = document.getElementById('estimated-cost')
+  // Transcription Prompt elements
+  const transcriptionPromptInput = document.getElementById(
+    'transcription-prompt-input'
+  )
+  const setTranscriptionPromptBtn = document.getElementById(
+    'set-transcription-prompt-btn'
+  )
 
   let capturingHotkey = false
   let newHotkey = ''
@@ -158,6 +165,22 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   })
 
+  // --- Transcription Prompt Setting ---
+  setTranscriptionPromptBtn.addEventListener('click', () => {
+    const newPrompt = transcriptionPromptInput.value.trim()
+    console.log('Sending new transcription prompt to main process...')
+    // Send to main process via preload script
+    window.electronAPI.setTranscriptionPrompt(newPrompt).then((result) => {
+      if (result.success) {
+        updateStatus('Transcription prompt saved successfully.')
+      } else {
+        updateStatus(`Error saving transcription prompt: ${result.error}`)
+        // Optionally revert UI by reloading settings
+        loadInitialSettings()
+      }
+    })
+  })
+
   // --- Status Updates ---
   function updateStatus(message) {
     statusMessage.textContent = message
@@ -199,6 +222,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 200) // Adjust delay if needed
       languageSelect.value = settings.language || '' // Load language setting, default to '' (Auto-Detect)
       console.log(`Set language dropdown to: ${languageSelect.value}`)
+      transcriptionPromptInput.value = settings.transcriptionPrompt || '' // Load prompt
+      console.log(
+        `Set transcription prompt input to: "${transcriptionPromptInput.value}"`
+      )
       updateStatus('Settings loaded.')
     })
   }

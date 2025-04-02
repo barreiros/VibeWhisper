@@ -30,6 +30,7 @@ The application captures audio from the user's microphone, transcribes it into t
   - Global Hotkey
   - Microphone Input Source
   - **Input Language** (for transcription, defaults to auto-detect)
+  - **Transcription Prompt** (optional context/instructions for the API)
   - Viewing estimated API usage cost.
 - Small, frameless, always-on-top Transcription window (`transcription.html`) appears during recording to show live transcription text.
 

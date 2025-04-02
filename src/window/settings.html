@@ -59,6 +59,14 @@
         <p class="small-text text-xs text-gray-600 mt-2">Specifying the language can improve transcription accuracy. Leave as 'Auto-Detect' if unsure.</p>
     </div>
 
+    <div class="settings-section bg-white p-6 rounded-lg shadow-md mb-6">
+        <h2 class="text-xl font-semibold mb-4">Transcription Prompt</h2>
+        <label for="transcription-prompt-input" class="block mb-2 font-medium">Context/Instructions:</label>
+        <textarea id="transcription-prompt-input" rows="3" placeholder="Optional: Provide context or instructions for the transcription model (e.g., 'Focus on technical terms related to JavaScript. Do not translate.')" class="w-full p-2 border border-gray-300 rounded mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        <button id="set-transcription-prompt-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Save Prompt</button>
+        <p class="small-text text-xs text-gray-600 mt-2">This prompt is sent to OpenAI to guide the transcription.</p>
+    </div>
+
     <div class="usage-section bg-white p-6 rounded-lg shadow-md mb-6">
         <h2 class="text-xl font-semibold mb-4">Estimated OpenAI Usage</h2>
         <p>Total Transcription Time: <span id="total-duration" class="font-mono">0.00</span> seconds</p>
