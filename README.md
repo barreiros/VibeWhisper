@@ -1,5 +1,7 @@
 # Barreiros SuperWhisper (OpenAI API Version)
 
+> **Note:** Currently, this application is primarily developed and tested for **macOS**. While it might run on Windows/Linux, full functionality (especially regarding permissions and pasting) is not guaranteed on those platforms yet.
+
 A simple Electron application that runs in the background, listens for a global hotkey, records audio from the microphone, transcribes it using the **OpenAI Speech-to-Text API**, and pastes the resulting text into the active application.
 
 ## Features
@@ -26,25 +28,27 @@ A simple Electron application that runs in the background, listens for a global 
     - Launch Barreiros SuperWhisper.
     - Open the **Settings** window (usually accessible from the system tray icon or the application menu).
     - Enter your OpenAI API key, which you can obtain from [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys). The key will be stored securely locally.
+4.  **Grant Permissions:**
+    - **Microphone Access:** The application needs permission to access your microphone for recording. Your operating system (macOS or Windows) will prompt you for this the first time you try to record. Please grant access. You can check the status in System Settings > Privacy & Security > Microphone.
+    - **Accessibility Access (macOS only):** On macOS, the application needs Accessibility permission to automatically paste the transcribed text. The application will prompt you for this on first launch. If pasting fails, ensure Barreiros SuperWhisper is checked in System Settings > Privacy & Security > Accessibility.
 
 ## How to Use
 
-1.  Launch the application (`npm start` or `npm run dev`).
+1.  Launch the application after installation (e.g., from your Applications folder on macOS, or the Start Menu on Windows).
 2.  If launching for the first time or the API key isn't set, open the Settings window (via the Tray icon or the Application Menu: File -> Settings / AppName -> Settings) and enter your OpenAI API key.
 3.  A tray icon should appear. Right-click for Settings or Quit.
 4.  (Optional) Configure the hotkey and microphone in the Settings window. Check the estimated API usage cost.
 5.  Press the configured global hotkey to start recording (you might see console logs if running from the terminal).
 6.  Speak clearly.
 7.  Press the global hotkey again to stop recording.
-8.  The application will send the audio to OpenAI for transcription and attempt to paste the resulting text into wherever your cursor is focused.
+8.  The application will send the audio to OpenAI for transcription, copy the result to your clipboard, and then attempt to paste the text into wherever your cursor is focused.
 
 ## TODO
 
-- Add visual feedback for recording state (e.g., tray icon change).
 - Improve error handling and user notifications (e.g., for API errors, network issues).
 - Refine UI/UX for settings (further Tailwind styling).
-- Consider adding API-related options (e.g., language selection if needed) to settings.
-- Add visual feedback for recording state (e.g., tray icon change, transcription window indicator).
+- Add support for Google Gemini API as an alternative transcription service.
+- Add support for selecting different transcription models (e.g., Whisper variants, Gemini models).
 
 ## Development Setup
 
@@ -53,6 +57,7 @@ If you want to contribute or run the application from the source code:
 1.  **Prerequisites:**
     - Node.js and npm installed.
     - Git installed.
+    - **Permissions:** Ensure you have granted Microphone and (on macOS) Accessibility permissions as described in the "Installation & Setup" section above.
 2.  **Clone the Repository:**
     ```bash
     git clone https://github.com/your-username/barreiros-superwhisper.git # Replace with your actual repo URL
@@ -77,4 +82,5 @@ If you want to contribute or run the application from the source code:
     ```bash
     npm run build
     ```
-    - This uses `electron-builder` to create installer packages in the `dist/` directory based on your current OS.
+    - This command uses `electron-builder` to package the application into distributable installers (e.g., `.dmg` for macOS, `.exe` for Windows) suitable for your current operating system.
+    - The output files will be located in the `dist/` directory within the project folder.
