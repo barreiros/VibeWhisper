@@ -20,8 +20,9 @@ A simple Electron application that runs in the background, listens for a global 
 ## Installation & Setup
 
 1.  **Download the Installer:**
-    - Go to the [**Releases Page**](https://github.com/your-username/vibewhisper/releases) (Replace with your actual link).
-    - Download the appropriate installer for your operating system (e.g., `.dmg` for macOS, `.exe` for Windows, `.AppImage` or `.deb`/`.rpm` for Linux).
+    - Go to the [**Releases Page**](https://github.com/barreiros/VibeWhisper/tree/develop/releases).
+    - **For macOS:** Download the `.dmg` file.
+    - For other operating systems: Download the appropriate installer (e.g., `.exe` for Windows, `.AppImage` or `.deb`/`.rpm` for Linux).
 2.  **Run the Installer:**
     - Double-click the downloaded file and follow the on-screen instructions to install the application.
 3.  **Configure OpenAI API Key:**

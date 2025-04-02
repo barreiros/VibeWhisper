@@ -88,7 +88,6 @@ out
 
 # Nuxt.js build output
 .nuxt
-dist
 
 # Remix build output
 .cache/
@@ -127,7 +126,7 @@ public/build/
 
 # Electron specific
 # Ignored folders
-dist/
+dist/* # Ignore contents of dist
 !dist/*.dmg # Keep .dmg files in the root of dist/
 release/
 # Compiled static assets
