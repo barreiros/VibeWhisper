@@ -71,7 +71,7 @@ If you want to contribute or run the application from the source code:
     - **Permissions:** Ensure you have granted Microphone and (on macOS) Accessibility permissions as described in the "Installation & Setup" section above.
 2.  **Clone the Repository:**
     ```bash
-    git clone https://github.com/your-username/vibewhisper.git # Replace with your actual repo URL
+    git clone https://github.com/barreiros/VibeWhisper # Replace with your actual repo URL
     cd vibewhisper
     ```
 3.  **Install Dependencies:**
