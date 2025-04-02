@@ -23,6 +23,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const setTranscriptionPromptBtn = document.getElementById(
     'set-transcription-prompt-btn'
   )
+  // Accessibility elements
+  const accessibilitySection = document.getElementById('accessibility-section')
+  const accessibilityStatusSpan = document.getElementById(
+    'accessibility-status'
+  )
+  const checkAccessibilityButton = document.getElementById(
+    'check-accessibility-button'
+  )
+  // Microphone Permission elements
+  const microphonePermissionSection = document.getElementById(
+    'microphone-permission-section'
+  )
+  const microphoneStatusSpan = document.getElementById('microphone-status')
 
   let capturingHotkey = false
   let newHotkey = ''
@@ -283,7 +296,114 @@ document.addEventListener('DOMContentLoaded', () => {
     logOutput.scrollTop = logOutput.scrollHeight
   })
 
+  // --- Accessibility Check (macOS only) ---
+  async function checkAccessibilityStatus() {
+    if (!window.electronAPI || !window.electronAPI.checkAccessibility) return // Preload not ready
+
+    try {
+      const status = await window.electronAPI.checkAccessibility()
+      console.log('Accessibility Status:', status)
+      if (status.supported) {
+        accessibilitySection.style.display = 'block' // Show the section
+        if (status.enabled) {
+          accessibilityStatusSpan.textContent = 'Status: Enabled'
+          accessibilityStatusSpan.className =
+            'text-sm font-medium text-green-600' // Green text
+          checkAccessibilityButton.textContent = 'Check Status' // Change button text
+        } else {
+          accessibilityStatusSpan.textContent = 'Status: Disabled'
+          accessibilityStatusSpan.className = 'text-sm font-medium text-red-600' // Red text
+          checkAccessibilityButton.textContent = 'Request Access' // Keep button text
+        }
+      } else {
+        accessibilitySection.style.display = 'none' // Hide on non-macOS
+      }
+    } catch (error) {
+      console.error('Error checking accessibility status:', error)
+      accessibilityStatusSpan.textContent = 'Status: Error'
+      accessibilityStatusSpan.className = 'text-sm font-medium text-red-600'
+      if (accessibilitySection) accessibilitySection.style.display = 'block' // Show section even on error if supported check failed
+    }
+  }
+
+  async function requestAccessibilityPermission() {
+    if (!window.electronAPI || !window.electronAPI.requestAccessibility) return
+
+    try {
+      accessibilityStatusSpan.textContent = 'Status: Requesting...'
+      accessibilityStatusSpan.className = 'text-sm font-medium text-yellow-600'
+      // Trigger the prompt (main process handles the OS dialog)
+      await window.electronAPI.requestAccessibility()
+      // The API doesn't wait for user interaction, so we re-check after a delay
+      // to give the user time to respond to the OS prompt.
+      updateStatus(
+        'Accessibility permission requested. Please check the macOS prompt or System Settings.'
+      )
+      setTimeout(checkAccessibilityStatus, 2000) // Re-check status after 2 seconds
+    } catch (error) {
+      console.error('Error requesting accessibility permission:', error)
+      updateStatus(`Error requesting accessibility: ${error.message}`)
+      checkAccessibilityStatus() // Re-check status even on error
+    }
+  }
+
+  if (checkAccessibilityButton) {
+    checkAccessibilityButton.addEventListener(
+      'click',
+      requestAccessibilityPermission
+    )
+  }
+
+  // --- Microphone Permission Check (macOS / Windows) ---
+  async function checkMicrophonePermissionStatus() {
+    if (!window.electronAPI || !window.electronAPI.checkMicrophonePermission)
+      return // Preload not ready
+
+    try {
+      const result = await window.electronAPI.checkMicrophonePermission()
+      console.log('Microphone Permission Status:', result)
+      if (result.supported) {
+        microphonePermissionSection.style.display = 'block' // Show section
+        let statusText = 'Status: Unknown'
+        let statusClass = 'text-sm font-medium text-gray-700' // Default color
+
+        switch (result.status) {
+          case 'granted':
+            statusText = 'Status: Granted'
+            statusClass = 'text-sm font-medium text-green-600' // Green
+            break
+          case 'denied':
+            statusText = 'Status: Denied'
+            statusClass = 'text-sm font-medium text-red-600' // Red
+            break
+          case 'restricted':
+            statusText = 'Status: Restricted'
+            statusClass = 'text-sm font-medium text-red-600' // Red
+            break
+          case 'not-determined':
+            statusText = 'Status: Not Determined'
+            statusClass = 'text-sm font-medium text-yellow-600' // Yellow
+            break
+          default:
+            statusText = `Status: ${result.status || 'Unknown'}`
+        }
+        microphoneStatusSpan.textContent = statusText
+        microphoneStatusSpan.className = statusClass
+      } else {
+        microphonePermissionSection.style.display = 'none' // Hide on unsupported OS
+      }
+    } catch (error) {
+      console.error('Error checking microphone permission status:', error)
+      microphoneStatusSpan.textContent = 'Status: Error'
+      microphoneStatusSpan.className = 'text-sm font-medium text-red-600'
+      if (microphonePermissionSection)
+        microphonePermissionSection.style.display = 'block' // Show section even on error
+    }
+  }
+
   // --- Initial Load ---
   loadInitialSettings()
   loadUsageStats() // Load stats on initial load
+  checkAccessibilityStatus() // Check accessibility status on load (for macOS)
+  checkMicrophonePermissionStatus() // Check microphone status on load
 })

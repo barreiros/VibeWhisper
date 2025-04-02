@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { ipcMain, systemPreferences } from 'electron' // <-- Import systemPreferences
 // SettingsStore instance is now passed in constructor
 
 export default class IpcHandler {
@@ -262,6 +262,65 @@ export default class IpcHandler {
         volume
       )
     })
+
+    // --- Accessibility Check IPC Handler (macOS only) ---
+    ipcMain.handle('check-accessibility', async () => {
+      if (process.platform !== 'darwin') {
+        return { supported: false, enabled: false } // Not applicable on non-macOS
+      }
+      try {
+        // Pass false here so it *only* checks, doesn't prompt automatically
+        const enabled = systemPreferences.isTrustedAccessibilityClient(false)
+        console.log(`IPC: Accessibility check requested. Status: ${enabled}`)
+        return { supported: true, enabled: enabled }
+      } catch (error) {
+        console.error('IPC: Error checking accessibility:', error)
+        return { supported: true, enabled: false, error: error.message }
+      }
+    })
+
+    ipcMain.handle('request-accessibility', async () => {
+      if (process.platform !== 'darwin') {
+        return { supported: false, enabled: false } // Not applicable
+      }
+      try {
+        // Pass true here to *prompt* the user if not already enabled
+        const enabledBeforePrompt =
+          systemPreferences.isTrustedAccessibilityClient(true)
+        console.log(
+          `IPC: Accessibility request triggered. Status before prompt (if shown): ${enabledBeforePrompt}`
+        )
+        // We return the status *before* prompting, as the API doesn't wait.
+        // The user needs to grant access via the OS dialog.
+        return { supported: true, enabled: enabledBeforePrompt }
+      } catch (error) {
+        console.error('IPC: Error requesting accessibility:', error)
+        return { supported: true, enabled: false, error: error.message }
+      }
+    })
+    // --- End Accessibility Check IPC Handler ---
+
+    // --- Microphone Permission Check IPC Handler (macOS/Windows) ---
+    ipcMain.handle('check-microphone-permission', async () => {
+      const platform = process.platform
+      if (platform !== 'darwin' && platform !== 'win32') {
+        return { supported: false, status: 'not-supported' } // Only check on macOS/Windows
+      }
+      try {
+        const status = await systemPreferences.getMediaAccessStatus(
+          'microphone'
+        )
+        console.log(
+          `IPC: Microphone permission check requested. Status: ${status}`
+        )
+        // Status can be 'not-determined', 'granted', 'denied', 'restricted'
+        return { supported: true, status: status }
+      } catch (error) {
+        console.error('IPC: Error checking microphone permission:', error)
+        return { supported: true, status: 'error', error: error.message }
+      }
+    })
+    // --- End Microphone Permission Check IPC Handler ---
 
     // --- End Web Audio API IPC Handlers ---
 

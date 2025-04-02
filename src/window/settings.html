@@ -67,6 +67,31 @@
         <p class="small-text text-xs text-gray-600 mt-2">This prompt is sent to OpenAI to guide the transcription.</p>
     </div>
 
+    <!-- Accessibility Check (macOS only) -->
+    <div id="accessibility-section" class="settings-section bg-white p-6 rounded-lg shadow-md mb-6" style="display: none;"> <!-- Hidden by default -->
+        <h2 class="text-xl font-semibold mb-4">Accessibility Access (macOS)</h2>
+        <p class="text-sm text-gray-600 mb-3">Required for pasting text automatically.</p>
+        <div class="flex items-center space-x-4">
+            <span id="accessibility-status" class="text-sm font-medium text-gray-700">Status: Unknown</span>
+            <button id="check-accessibility-button" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Check / Request Access
+            </button>
+        </div>
+         <p class="text-xs text-gray-500 mt-3">If access is denied or pasting fails, please grant access in:<br>System Settings > Privacy & Security > Accessibility.</p>
+    </div>
+
+    <!-- Microphone Permission Check (macOS/Windows) -->
+    <div id="microphone-permission-section" class="settings-section bg-white p-6 rounded-lg shadow-md mb-6" style="display: none;"> <!-- Hidden by default -->
+        <h2 class="text-xl font-semibold mb-4">Microphone Access</h2>
+        <p class="text-sm text-gray-600 mb-3">Required for recording audio.</p>
+        <div class="flex items-center space-x-4">
+            <span id="microphone-status" class="text-sm font-medium text-gray-700">Status: Unknown</span>
+            <!-- No button needed here, as we can't re-prompt programmatically -->
+        </div>
+         <p class="text-xs text-gray-500 mt-3">If access is denied, please grant access in:<br>System Settings > Privacy & Security > Microphone.</p>
+    </div>
+
+
     <div class="usage-section bg-white p-6 rounded-lg shadow-md mb-6">
         <h2 class="text-xl font-semibold mb-4">Estimated OpenAI Usage</h2>
         <p>Total Transcription Time: <span id="total-duration" class="font-mono">0.00</span> seconds</p>

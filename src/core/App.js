@@ -1,7 +1,7 @@
 // Load environment variables from .env file first
 import 'dotenv/config' // Use side-effect import
 
-import { app, dialog } from 'electron' // Add dialog
+import { app, dialog, systemPreferences } from 'electron' // Add systemPreferences
 import path, { dirname } from 'path' // Import dirname as well
 import { fileURLToPath } from 'url' // Needed for __dirname equivalent
 import { createRequire } from 'module' // Needed for CommonJS modules like electron-reload
@@ -63,6 +63,31 @@ async function initializeApp() {
   console.log('Main Index: Initializing application...')
 
   // --- SoX Check Removed ---
+
+  // --- Accessibility Check (macOS) ---
+  if (process.platform === 'darwin') {
+    const accessibilityEnabled =
+      systemPreferences.isTrustedAccessibilityClient(true) // Check and prompt
+    console.log(`Main Index: Accessibility trusted: ${accessibilityEnabled}`)
+    if (!accessibilityEnabled) {
+      // Even if prompted, the return value reflects the status *before* the user might grant it.
+      // Show an informational dialog guiding the user.
+      dialog
+        .showMessageBox({
+          type: 'info',
+          title: 'Accessibility Access Required',
+          message:
+            'Barreiros SuperWhisper needs Accessibility access to paste transcribed text.',
+          detail:
+            "If pasting doesn't work, please go to System Settings > Privacy & Security > Accessibility and ensure Barreiros SuperWhisper is enabled. You may need to restart the application after granting access.",
+          buttons: ['OK'],
+        })
+        .catch((err) =>
+          console.error('Failed to show accessibility dialog:', err)
+        ) // Catch potential errors showing dialog
+    }
+  }
+  // --- End Accessibility Check ---
 
   // Instantiate and initialize SettingsStore first
   const settingsStore = new SettingsStore()

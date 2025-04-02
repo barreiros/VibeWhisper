@@ -14,6 +14,9 @@ const validInvokeChannels = [
   'get-usage-stats',
   'set-language', // Added channel for setting language
   'set-transcription-prompt', // Added channel for setting transcription prompt
+  'check-accessibility', // Added channel for checking accessibility
+  'request-accessibility', // Added channel for requesting accessibility
+  'check-microphone-permission', // Added channel for checking microphone permission
 ] // Channels renderer <-> main (request/response)
 
 console.log('Settings Preload Script Loaded.')
@@ -89,4 +92,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('api-key-invalid', subscription)
     return () => ipcRenderer.removeListener('api-key-invalid', subscription)
   },
+
+  // --- Accessibility Helpers ---
+  checkAccessibility: () => ipcRenderer.invoke('check-accessibility'),
+  requestAccessibility: () => ipcRenderer.invoke('request-accessibility'),
+
+  // --- Microphone Permission Helper ---
+  checkMicrophonePermission: () =>
+    ipcRenderer.invoke('check-microphone-permission'),
 })
